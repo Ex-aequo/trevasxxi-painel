@@ -5,27 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TREVASXXI — Painel de Decisão</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2a2119">
+<meta name="theme-color" content="#1b1e27">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{
-  --bg:#1a1410; --bg2:#221b15; --panel:#2a2119; --panel2:#332a1f;
-  --gold:#d4a94a; --gold-dim:#8a7040; --text:#ecd9b8; --text-dim:#b8a583;
-  --red:#c0503f; --green:#5a8f5a; --border:#4a3d2a;
-  --sand:#c9a876;
-  font-family: Georgia, 'Times New Roman', serif;
+  /* Base "sala de mapas" — tinta fria, independente de raça */
+  --bg:#14161c; --bg2:#1b1e27; --panel:#1e222c; --panel2:#262b38;
+  --text:#e6e2d3; --text-dim:#9b9686; --border:#333849;
+  --red:#c0503f; --green:#5a8f5a;
+  /* Acento — sobrescrito em runtime por raça (applyRaceAccent), estes são só o ponto de partida */
+  --gold:#c7ac74; --gold-dim:#8a7a52; --sand:#c7ac74;
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-body);
 }
 @media (prefers-color-scheme: light){
   :root:not([data-theme="dark"]){
-    --bg:#f3ead9; --bg2:#ece0c8; --panel:#fff8ec; --panel2:#f5ead4;
-    --gold:#8a6a1f; --gold-dim:#a68a4a; --text:#3a2e1c; --text-dim:#6b5a3e;
-    --border:#d8c4a0;
+    --bg:#e8e6dd; --bg2:#ded9c9; --panel:#f5f3ea; --panel2:#ede8d9;
+    --text:#252017; --text-dim:#5c5647; --border:#cfc9b6;
+    --gold:#8a6a1f; --gold-dim:#a68a4a; --sand:#8a6a1f;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#1a1410; --bg2:#221b15; --panel:#2a2119; --panel2:#332a1f;
-  --gold:#d4a94a; --text:#ecd9b8; --text-dim:#b8a583; --border:#4a3d2a;
+  --bg:#14161c; --bg2:#1b1e27; --panel:#1e222c; --panel2:#262b38;
+  --text:#e6e2d3; --text-dim:#9b9686; --border:#333849;
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--text);}
@@ -35,49 +39,73 @@ body{
   min-height:100%;
   font-size:15px;
   line-height:1.5;
+  font-family: var(--font-body);
 }
-h1,h2,h3{font-family:Georgia,serif;color:var(--gold);letter-spacing:.02em;margin:0 0 8px;}
+h1,h2,h3{font-family:var(--font-display);color:var(--gold);letter-spacing:.01em;margin:0 0 8px;font-weight:600;}
 h1{font-size:1.4rem;}
-h2{font-size:1.05rem;border-bottom:1px solid var(--border);padding-bottom:6px;margin-top:0;}
-h3{font-size:.92rem;color:var(--sand,var(--gold));margin-bottom:4px;}
-.wrap{max-width:1400px;margin:0 auto;padding:14px 22px 60px;}
+h2{font-size:1.05rem;border-bottom:1px solid var(--border);padding-bottom:6px;margin-top:0;font-weight:600;}
+h3{font-size:.92rem;color:var(--sand,var(--gold));margin-bottom:4px;font-weight:600;}
+.wrap{flex:1;min-width:0;padding:14px 22px 60px;}
+.app{display:flex;min-height:100vh;}
 @media(min-width:1000px){ .grid.cols3{grid-template-columns:repeat(4,1fr);} }
-.advisor-card{border:1px solid var(--gold-dim);border-radius:10px;padding:14px;margin-bottom:12px;background:linear-gradient(135deg,var(--panel),var(--panel2));position:relative;}
-.advisor-rank{position:absolute;top:-12px;left:14px;background:var(--gold-dim);color:#221b15;font-weight:bold;font-size:.85rem;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);}
+.advisor-card{border:1px solid var(--border);border-left:3px solid var(--gold-dim);border-radius:6px;padding:14px;margin-bottom:12px;background:var(--panel);position:relative;}
+.advisor-rank{position:absolute;top:-12px;left:14px;background:var(--gold-dim);color:var(--bg);font-weight:bold;font-size:.85rem;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);font-family:var(--font-display);}
 .advisor-rank.r1{background:var(--gold);}
-.advisor-title{margin:4px 0 6px 26px;font-size:1rem;color:var(--gold);}
+.advisor-title{margin:4px 0 6px 26px;font-size:1rem;color:var(--gold);font-family:var(--font-display);font-weight:600;}
 .advisor-meta{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0;font-size:.78rem;}
-.advisor-meta span{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:3px 8px;}
+.advisor-meta span{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:3px 8px;}
 .advisor-body{font-size:.85rem;color:var(--text-dim);}
-header{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:12px 14px;background:linear-gradient(180deg,var(--panel2),var(--panel));
-  border-bottom:2px solid var(--gold-dim);position:sticky;top:0;z-index:20;
-  padding-top:calc(12px + env(safe-area-inset-top,0px));
-}
-header .title{display:flex;flex-direction:column;}
-header .title small{color:var(--text-dim);font-size:.72rem;}
+.sidebar-header{padding:2px 8px 12px;}
+.sidebar-header h1{margin:0;font-size:1.1rem;}
+.sidebar-header small{color:var(--text-dim);font-size:.7rem;display:block;margin-top:2px;}
+.sidebar-header .badges{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
 .badge{font-size:.7rem;padding:3px 8px;border:1px solid var(--gold-dim);border-radius:20px;color:var(--gold);white-space:nowrap;}
-nav{display:flex;gap:4px;overflow-x:auto;padding:8px 10px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:56px;z-index:19;-webkit-overflow-scrolling:touch;}
-nav button{
-  flex:0 0 auto;background:transparent;border:1px solid var(--border);color:var(--text-dim);
-  padding:7px 12px;border-radius:6px;font-size:.82rem;cursor:pointer;font-family:inherit;white-space:nowrap;
+nav{
+  display:flex;flex-direction:column;gap:3px;padding:14px 10px;
+  background:var(--bg2);border-right:1px solid var(--border);
+  width:230px;flex:0 0 230px;position:sticky;top:0;height:100vh;overflow-y:auto;
+  padding-top:calc(14px + env(safe-area-inset-top,0px));
+  -webkit-overflow-scrolling:touch;
 }
+nav button{
+  flex:0 0 auto;background:transparent;border:1px solid transparent;color:var(--text-dim);
+  padding:8px 10px;border-radius:6px;font-size:.83rem;cursor:pointer;font-family:var(--font-body);
+  white-space:nowrap;text-align:left;display:flex;align-items:center;gap:7px;
+}
+nav button:hover{background:var(--panel2);}
 nav button.active{background:var(--panel2);color:var(--gold);border-color:var(--gold-dim);}
+nav button.primary{background:rgba(212,169,74,0.1);border-color:var(--gold-dim);color:var(--gold);font-weight:600;}
+nav button.primary .stepnum{
+  background:var(--gold-dim);color:var(--bg);width:18px;height:18px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;font-size:.68rem;flex:0 0 18px;font-weight:700;
+}
+nav .navdivider{height:1px;background:var(--border);margin:8px 4px;}
+nav .navsection{font-size:.66rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;padding:4px 10px 2px;}
+@media(max-width:860px){
+  .app{flex-direction:column;}
+  nav{
+    width:100%;flex:0 0 auto;height:auto;flex-direction:row;position:sticky;top:0;z-index:20;
+    overflow-x:auto;overflow-y:hidden;border-right:none;border-bottom:1px solid var(--border);
+  }
+  .sidebar-header{display:none;}
+  nav button{white-space:nowrap;border-color:var(--border);}
+  nav .navdivider{width:1px;height:26px;margin:0 4px;}
+  nav .navsection{display:none;}
+}
 section.tab{display:none;padding:14px 0;}
 section.tab.active{display:block;}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px;}
 .grid{display:grid;gap:10px;}
 .grid.cols2{grid-template-columns:1fr 1fr;}
 .grid.cols3{grid-template-columns:repeat(3,1fr);}
 @media(max-width:640px){.grid.cols3{grid-template-columns:repeat(2,1fr);} .grid.cols2{grid-template-columns:1fr;}}
-.stat{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
-.stat .v{font-size:1.25rem;color:var(--gold);font-weight:bold;}
-.stat .l{font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;}
+.stat{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;}
+.stat .v{font-size:1.25rem;color:var(--gold);font-weight:bold;font-family:var(--font-display);}
+.stat .l{font-size:.72rem;color:var(--text-dim);}
 table{width:100%;border-collapse:collapse;font-size:.82rem;}
 th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);}
-th{color:var(--gold);font-weight:normal;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;}
-tr:hover td{background:rgba(212,169,74,0.06);}
+th{color:var(--text-dim);font-weight:600;font-size:.74rem;}
+tr:hover td{background:rgba(255,255,255,0.035);}
 .tbl-wrap{overflow-x:auto;}
 .pill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:.68rem;border:1px solid var(--border);color:var(--text-dim);}
 .pill.terr-plains{border-color:#8a9a4a;color:#c4d17f;}
@@ -89,18 +117,18 @@ tr:hover td{background:rgba(212,169,74,0.06);}
 .pill.terr-swamp{border-color:#5a8a6a;color:#8fc4a4;}
 input,select{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:6px;font-family:inherit;font-size:.85rem;}
 input[type=number]{width:80px;}
-button.act{background:var(--gold-dim);color:#221b15;border:none;padding:6px 12px;border-radius:6px;font-size:.8rem;cursor:pointer;font-weight:bold;}
+button.act{background:var(--gold-dim);color:#16140f;border:none;padding:6px 12px;border-radius:6px;font-size:.8rem;cursor:pointer;font-weight:600;}
 button.act:hover{background:var(--gold);}
 button.act.secondary{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);}
 .muted{color:var(--text-dim);font-size:.8rem;}
 .warn{color:#e08a5a;}
 .good{color:#8fc47f;}
 .bad{color:#d47f7f;}
-.recommend{border-left:3px solid var(--gold-dim);padding:8px 10px;margin:6px 0;background:var(--panel2);border-radius:0 8px 8px 0;font-size:.85rem;}
+.recommend{border-left:3px solid var(--gold-dim);padding:8px 10px;margin:6px 0;background:var(--panel2);border-radius:0 6px 6px 0;font-size:.85rem;}
 .recommend b{color:var(--gold);}
 .flexrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 .up{position:relative;}
-.upbox{border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;cursor:pointer;color:var(--text-dim);font-size:.85rem;}
+.upbox{border:2px dashed var(--border);border-radius:8px;padding:18px;text-align:center;cursor:pointer;color:var(--text-dim);font-size:.85rem;}
 .upbox:hover{border-color:var(--gold-dim);}
 .small{font-size:.75rem;color:var(--text-dim);}
 .footer-note{margin-top:20px;padding-top:12px;border-top:1px solid var(--border);font-size:.72rem;color:var(--text-dim);}
@@ -111,29 +139,39 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
 </style>
 </head>
 <body>
-<header>
-  <div class="title">
-    <h1 style="margin:0;" id="kingdomTitle">🏜 —</h1>
-    <small id="kingdomSubtitle">Painel de Decisão TREVASXXI</small>
-  </div>
-  <div class="badge" id="turnBadge">Turno —</div>
-</header>
-
+<div class="app">
 <nav id="tabnav">
+  <div class="sidebar-header">
+    <h1 id="kingdomTitle">🏜 —</h1>
+    <small id="kingdomSubtitle">Painel de Decisão TREVASXXI</small>
+    <div class="badges">
+      <span class="badge" id="turnBadge">Turno —</span>
+      <span class="badge" id="appVersionBadge" title="Versão do painel — confirma que o browser não está a servir uma cópia antiga da cache" style="opacity:.6;font-size:.65rem;">v—</span>
+    </div>
+  </div>
+  <button class="primary" data-tab="carregar"><span class="stepnum">1</span> 📥 Carregar Relatório</button>
+  <button class="primary" data-tab="ordens"><span class="stepnum">2</span> 📝 Carregar Ordens</button>
+  <div class="navdivider"></div>
+  <div class="navsection">Painel</div>
   <button data-tab="visao" class="active">Visão Geral</button>
   <button data-tab="advisor">⭐ Advisor</button>
   <button data-tab="territorio">Território</button>
+  <button data-tab="mapa">🗺 Mapa</button>
   <button data-tab="construcao">Construção</button>
   <button data-tab="recrutamento">Recrutamento</button>
+  <button data-tab="exercitos">⚔ Exércitos</button>
   <button data-tab="personagens">Personagens</button>
   <button data-tab="impostos">Impostos</button>
   <button data-tab="plano">🗺 Plano de Campanha</button>
   <button data-tab="historico">📈 Histórico</button>
+  <div class="navdivider"></div>
+  <div class="navsection">Calculadoras</div>
   <button data-tab="batalha">⚔ Calculadora de Batalha</button>
+  <button data-tab="naval">⚓ Batalha Naval</button>
   <button data-tab="cerco">🏰 Calculadora de Cerco</button>
+  <div class="navdivider"></div>
   <button data-tab="alvos">🎯 Registo de Alvos</button>
   <button data-tab="balanco">⚖ Balanço</button>
-  <button data-tab="carregar">Carregar Relatório</button>
 </nav>
 
 <div class="wrap">
@@ -154,6 +192,10 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
     <p class="small muted">Nada do que carregares sai deste browser: fica guardado só neste dispositivo, mesmo que outras pessoas usem o mesmo link.</p>
     <button class="act" id="welcomeGoBtn">Ir para Carregar Relatório</button>
   </div>
+  <div class="card" id="battleLogCard" style="display:none;">
+    <h2>⚔ Batalhas Neste Turno</h2>
+    <div id="battleLogList"></div>
+  </div>
   <div class="card" id="diffCard" style="display:none;">
     <h2>🔍 O Que Mudou Desde o Último Relatório</h2>
     <div id="diffContent"></div>
@@ -168,7 +210,7 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
   </div>
   <div class="card">
     <h2>Rendimento Projetado (Fase 1, este turno)</h2>
-    <p class="small">Ouro é determinístico. Comida/pedra/madeira mostram o piso garantido — a tua Página do Jogador nunca promete mais do que isto. O separador Produção do jogo mostra o intervalo completo.</p>
+    <p class="small">Ouro é determinístico. Comida/pedra/madeira mostram o valor garantido — a tua Página do Jogador nunca promete mais do que isto. O separador Produção do jogo mostra o intervalo completo.</p>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Recurso</th><th>Garantido</th><th>Máximo possível</th><th>Fonte</th></tr></thead>
       <tbody id="incomeBody"></tbody>
@@ -192,7 +234,7 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
 <section class="tab" id="tab-advisor">
   <div class="card">
     <h2>⭐ Advisor — As 5 Melhores Ações Agora</h2>
-    <p class="small">Calculado a cada carregamento de relatório a partir de todas as regras, fórmulas e tabelas do manual v586. As ações são convertidas para um valor comum em ouro-equivalente (usando os preços de venda do mercado) para poderem ser comparadas entre si, depois ordenadas por retorno por ouro investido — ações grátis (atribuições, imposto) sobem sempre ao topo quando têm valor positivo. Nº 1 é a mais eficaz.</p>
+    <p class="small">Calculado a cada carregamento de relatório a partir de todas as regras, fórmulas e tabelas do manual v747. As ações são convertidas para um valor comum em ouro-equivalente (usando os preços de venda do mercado) para poderem ser comparadas entre si, depois ordenadas por retorno por ouro investido — ações grátis (atribuições, imposto) sobem sempre ao topo quando têm valor positivo. Nº 1 é a mais eficaz.</p>
     <div id="advisorList"></div>
   </div>
 </section>
@@ -201,11 +243,49 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
 <section class="tab" id="tab-territorio">
   <div class="card">
     <h2>Hexágonos do Reino</h2>
-    <p class="small">22 hexágonos — capital do exército em <b>Fortaleza portuária (14,31)</b> (musterSeatOf), assento de recrutamento.</p>
+    <p class="small" id="territorioIntro">—</p>
     <div class="tbl-wrap"><table id="hexTable">
       <thead><tr><th>Hex</th><th>Terreno</th><th>Pop.</th><th>Nv.</th><th>Muro</th><th>Local</th><th>Nota</th></tr></thead>
       <tbody></tbody>
     </table></div>
+  </div>
+</section>
+
+<!-- MAPA -->
+<section class="tab" id="tab-mapa">
+  <div class="card">
+    <h2>🗺 Mapa</h2>
+    <p class="small">O teu território e a fronteira que já viste — cor por terreno; a fronteira ganha um tom de aliança (guerra/paz/aliança) a partir do Registo de Alvos e da diplomacia do relatório. Clica num hexágono para veres os detalhes.</p>
+  </div>
+  <div id="mapaEmptyNote" class="card" style="display:none;"><p class="muted">Sem hexágonos visíveis ainda — carrega um relatório em "Carregar Relatório".</p></div>
+  <div id="mapaContent">
+  <div class="small muted" id="mapaWrapNote" style="display:none;margin-bottom:8px;">🌐 <b>Mapa circular</b> (manual §2.14.8): as colunas dão a volta — o que sai pelo lado oeste reaparece a este. Todos os hexágonos têm 6 vizinhos e as distâncias contam-se pelo caminho mais curto, mesmo através da costura. Hexágonos de mar na costura que toquem em terra são costeiros. Nómadas: um movimento de 2 hexágonos do acampamento precisa de um hexágono de terra livre no meio, também através da costura.</div>
+  <div class="mobileWarn" id="mapaMobileWarn" style="display:none;background:#4a2a2a;border:1px solid #e87a7a;border-radius:8px;padding:8px 10px;font-size:.78rem;color:#ffb4b4;margin-bottom:10px;">⚠ Ecrã pequeno detetado — o zoom com dois dedos pode não se comportar tão bem aqui como no computador; usa o scroll normal e os botões +/− se precisares.</div>
+  <div class="layout" style="display:flex;flex-direction:column;gap:12px;">
+    <div class="card" id="mapaMapcard" style="width:100%;padding:8px;position:relative;">
+      <div style="position:absolute;top:14px;right:14px;display:flex;flex-direction:column;gap:4px;z-index:5;">
+        <button id="mapaZoomIn" type="button" class="act secondary" style="width:32px;height:32px;padding:0;">+</button>
+        <button id="mapaZoomOut" type="button" class="act secondary" style="width:32px;height:32px;padding:0;">−</button>
+        <button id="mapaZoomReset" type="button" class="act secondary" style="width:32px;height:32px;padding:0;font-size:.65rem;">1:1</button>
+        <button id="mapaZoomFit" type="button" class="act secondary" style="width:32px;height:32px;padding:0;font-size:.9rem;" title="Ajustar à janela">⤢</button>
+      </div>
+      <div id="mapaViewport" style="overflow:auto;touch-action:none;border-radius:6px;background:rgba(255,255,255,0.015);">
+        <svg id="mapaSvg" style="transform-origin:0 0;"></svg>
+      </div>
+      <div class="legend" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:.7rem;color:var(--text-dim);">
+        <span><span style="width:10px;height:10px;border-radius:2px;display:inline-block;background:var(--gold);"></span> Teu</span>
+        <span><span style="width:10px;height:10px;border-radius:2px;display:inline-block;background:#e87a7a;opacity:.5;"></span> Guerra</span>
+        <span><span style="width:10px;height:10px;border-radius:2px;display:inline-block;background:#7ab5e8;opacity:.5;"></span> Aliado/Vassalo</span>
+        <span><span style="width:10px;height:10px;border-radius:2px;display:inline-block;background:#8a9a4a;opacity:.4;"></span> Paz/Desconhecido</span>
+        <span><span style="width:10px;height:10px;border-radius:2px;display:inline-block;background:#1c1f28;"></span> Escondido</span>
+        <span>★ assento</span><span>⚔ exército</span>
+      </div>
+    </div>
+    <div class="card" id="mapaSidepanel" style="width:100%;">
+      <h3>Clica num hexágono</h3>
+      <p class="muted small">Os detalhes aparecem aqui.</p>
+    </div>
+  </div>
   </div>
 </section>
 
@@ -266,6 +346,31 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
   </div>
 </section>
 
+<!-- EXÉRCITOS -->
+<section class="tab" id="tab-exercitos">
+  <div class="card">
+    <h2>⚔ Estado dos Exércitos</h2>
+    <p class="small">Composição, localização e estado de todos os exércitos do relatório mais recente — dados diretos de <code>kingdom_state.armies</code>, sem nada inventado.</p>
+  </div>
+  <div id="exercitosEmptyNote" class="card" style="display:none;"><p class="muted">Sem exércitos no relatório carregado.</p></div>
+  <div id="exercitosList"></div>
+  <div class="card">
+    <h3>Legenda</h3>
+    <table>
+      <tbody>
+        <tr><td style="white-space:nowrap;"><b>WP individual</b></td><td class="small">Pontos de Guerra de <i>uma</i> unidade desse tipo — o valor fixo do elenco da raça.</td></tr>
+        <tr><td style="white-space:nowrap;"><b>WP total (unidade)</b></td><td class="small">WP individual × quantidade dessa unidade no exército.</td></tr>
+        <tr><td style="white-space:nowrap;"><b>WP total (exército)</b></td><td class="small">Soma do WP de todas as unidades do exército — o que entra na Calculadora de Batalha/Cerco.</td></tr>
+        <tr><td style="white-space:nowrap;"><b>G-EQ médio</b></td><td class="small">Preço de combate médio, ponderado pela quantidade (ouro + ferro×12 + cavalos×20 + madeira×5 — a comida nunca conta; o ferro valia ×16 até ao manual v629). Determina o Fator de Morte (§5.5.4).</td></tr>
+        <tr><td style="white-space:nowrap;"><b>Fator de morte</b></td><td class="small">Quanto mais baixo, menos baixas a unidade sofre em combate — piso de 0,30 a partir de G-EQ ≈770.</td></tr>
+        <tr><td style="white-space:nowrap;"><b>ESTADO</b></td><td class="small">Multiplica diretamente o WP em combate (§5.10.1) — um exército a 50% luta como se tivesse metade do WP. Recupera +33/turno ao descansar sem marchar.</td></tr>
+        <tr><td style="white-space:nowrap;"><b>Corpo</b></td><td class="small">Contagem usada no teste de Cerco (§5.8.1) — 1 por soldado a pé, 2 por soldado montado.</td></tr>
+        <tr><td style="white-space:nowrap;"><b>Por confirmar</b></td><td class="small">Vem do ficheiro de ordens, não do relatório — o relatório de turno mostra sempre o estado <i>antes</i> das ordens serem processadas pelo GM, por isso só se confirma no relatório do turno seguinte.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
 <!-- PERSONAGENS -->
 <section class="tab" id="tab-personagens">
   <div class="card">
@@ -282,9 +387,10 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
       <thead><tr><th>Estatística mais alta</th><th>Atribuição recomendada</th><th>Efeito</th></tr></thead>
       <tbody>
         <tr><td>Militar</td><td>Comandante de Exército</td><td>cmdMult = 1 + militar/1000</td></tr>
-        <tr><td>Economia</td><td>Tesoureiro</td><td>+0,2%×economia no ouro base</td></tr>
+        <tr><td>Economia</td><td>Tesoureiro</td><td>+0,2%×economia no ouro do <b>imposto</b> (os portos são do Mestre dos Portos)</td></tr>
         <tr><td>Gestão</td><td>Mestre de Quintas/Minas/Portos/Serrarias/Pedreiras</td><td>+0,2%×gestão no recurso do local</td></tr>
-        <tr><td>Política</td><td>Mestre dos Espiões</td><td>precisão de relatórios de espionagem</td></tr>
+        <tr><td>Gestão</td><td>Mestre dos Cavalos</td><td>+0,02×gestão <b>pontos percentuais</b> na criação do rebanho (gestão 90 → +1,8 pts)</td></tr>
+        <tr><td>Política</td><td>Mestre dos Espiões</td><td>escalão de precisão das missões de espionagem (&gt;75 / &gt;50 / abaixo) e preço dos rumores</td></tr>
       </tbody>
     </table>
   </div>
@@ -312,7 +418,7 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
   <div id="planPhases"></div>
   <div class="card">
     <h2>📋 Recrutamento Concreto — Próximos 8 Turnos</h2>
-    <p class="small">Simulação turno-a-turno a partir do teu relatório mais recente: crescimento populacional (§2.9.1, 2%/turno médio), rendimento em piso garantido, manutenção de ouro/ferro das tropas já em pé, e <b>consumo de comida contínuo</b> (§2.10.4: 1/soldado a pé, 2/montado — 1 se Nómada) subtraído a cada turno antes de recrutar mais. O recrutamento é travado para nunca comprometer mais de 85% do rendimento de comida desse turno em manutenção — a folga fica para crescimento e imprevistos.</p>
+    <p class="small">Simulação turno-a-turno a partir do teu relatório mais recente: crescimento populacional (§2.9.1, 2%/turno médio), rendimento no valor garantido, manutenção de ouro/ferro das tropas já em pé, e <b>consumo de comida contínuo</b> (§2.10.4: 1/soldado a pé, 2/montado — 1 se Nómada) subtraído a cada turno antes de recrutar mais. O recrutamento é travado para nunca comprometer mais de 85% do rendimento de comida desse turno em manutenção — a folga fica para crescimento e imprevistos.</p>
     <div class="tbl-wrap"><table id="recruitPlanTable">
       <thead><tr><th>Turno</th><th>Ações de arranque</th><th>Recrutar</th><th>Exército acumulado</th><th>Ouro no fim</th><th>Comida no fim</th></tr></thead>
       <tbody></tbody>
@@ -353,12 +459,24 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
 
   <div class="grid cols2">
     <div class="card">
-      <h3 id="ownArmyTitle">🛡 O Teu Exército</h3>
+      <h3 id="ownArmyTitle">🛡 O Teu Exército (+ aliados)</h3>
+      <div class="flexrow" id="ownArmyPrefillRow" style="display:none;margin-bottom:8px;">
+        <label class="small">Carregar do relatório <select id="ownArmyPrefillSel"></select></label>
+        <button class="act secondary" id="ownArmyPrefillBtn" type="button">Preencher</button>
+      </div>
+      <p class="small muted" id="ownArmyNoArmiesNote" style="display:none;">Sem exércitos no relatório carregado — adiciona manualmente.</p>
       <div class="tbl-wrap"><table id="ownArmyTable">
-        <thead><tr><th>Unidade</th><th>WP</th><th>Qtd.</th></tr></thead>
+        <thead><tr><th>Raça</th><th>Unidade</th><th>WP</th><th>Qtd.</th><th></th></tr></thead>
         <tbody></tbody>
       </table></div>
       <div class="flexrow" style="margin-top:8px;">
+        <select id="ownStackRace" style="width:100px;"></select>
+        <select id="ownStackUnit" style="width:140px;"></select>
+        <input type="number" id="ownStackQty" value="10" min="1" style="width:70px;">
+        <button class="act secondary" id="ownStackAddBtn" type="button">+ Adicionar</button>
+      </div>
+      <p class="small muted" style="margin-top:4px;">Junta unidades de qualquer raça ao teu lado — útil para simular reforços aliados.</p>
+      <div class="flexrow" style="margin-top:10px;">
         <label class="small">Comandante: <select id="ownCommander"></select></label>
       </div>
       <div class="flexrow" style="margin-top:6px;">
@@ -368,20 +486,24 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
           <option value="1.2">Defensiva (×1,20)</option>
           <option value="1.2g">Guarnição (×1,20)</option>
           <option value="1.4">Emboscada válida (×1,40)</option>
+          <option value="0.85">Cerco / Marcha de cerco, atacado por socorro (×0,85)</option>
           <option value="0.85">Marcha de Cerco (×0,85)</option>
         </select></label>
       </div>
     </div>
 
     <div class="card">
-      <h3>🎯 Exército Inimigo</h3>
-      <div class="flexrow">
-        <label class="small">Raça inimiga <select id="enemyRace"></select></label>
-      </div>
-      <div class="tbl-wrap" style="margin-top:6px;"><table id="enemyArmyTable">
-        <thead><tr><th>Unidade</th><th>WP</th><th>Qtd.</th></tr></thead>
+      <h3>🎯 Exército Inimigo (+ coligação)</h3>
+      <div class="tbl-wrap"><table id="enemyArmyTable">
+        <thead><tr><th>Raça</th><th>Unidade</th><th>WP</th><th>Qtd.</th><th></th></tr></thead>
         <tbody></tbody>
       </table></div>
+      <div class="flexrow" style="margin-top:8px;">
+        <select id="enemyStackRace" style="width:100px;"></select>
+        <select id="enemyStackUnit" style="width:140px;"></select>
+        <input type="number" id="enemyStackQty" value="10" min="1" style="width:70px;">
+        <button class="act secondary" id="enemyStackAddBtn" type="button">+ Adicionar</button>
+      </div>
       <div class="flexrow" style="margin-top:8px;">
         <label class="small">Militar do comandante (0 = sem) <input type="number" id="enemyCommander" value="0" min="0" style="width:70px;"></label>
       </div>
@@ -392,6 +514,7 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
           <option value="1.2">Defensiva (×1,20)</option>
           <option value="1.2g">Guarnição (×1,20)</option>
           <option value="1.4">Emboscada válida (×1,40)</option>
+          <option value="0.85">Cerco / Marcha de cerco, atacado por socorro (×0,85)</option>
         </select></label>
       </div>
     </div>
@@ -409,6 +532,7 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
     <div class="flexrow" style="margin-top:8px;">
       <label class="small"><input type="checkbox" id="legionBonus"> Bónus Legião ativo (defensor Imperial em hexágono próprio FI/POP, ×1,10)</label>
     </div>
+    <p class="small muted" style="margin-top:8px;">Só a postura de <b>quem defende</b> conta (§5.4): o atacante, incluindo quem faz um Sally, luta a ×1,00. Emboscada: só Elfo em floresta ou Anão em montanha, fica fora das muralhas, é invisível e fica gasta depois de lutar. Cada exército do lado perdedor perde sempre pelo menos 1 soldado (§5.5.4). Em muralhas, só a Guarnição fica dentro (§5.8.0).</p>
     <button class="act" id="calcBattleBtn" style="margin-top:10px;">Calcular Batalha</button>
   </div>
 
@@ -418,11 +542,93 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
   </div>
 </section>
 
+<!-- BATALHA NAVAL -->
+<section class="tab" id="tab-naval">
+  <div class="card">
+    <h2>⚓ Calculadora de Batalha Naval</h2>
+    <p class="small">Usa as fórmulas exatas do manual (§5.9) — desde 2026-08-23 o mar usa a mesma curva de baixas do campo de batalha. Orc e Anão não têm frota por desenho do jogo.</p>
+  </div>
+  <div id="navalNoFleetNote" class="card" style="display:none;">
+    <p class="bad" id="navalNoFleetText"></p>
+  </div>
+  <div id="navalContent">
+  <div class="grid cols2">
+    <div class="card">
+      <h3 id="ownFleetTitle">🛡 A Tua Frota (+ aliados)</h3>
+      <div class="flexrow" id="ownFleetPrefillRow" style="display:none;margin-bottom:8px;">
+        <label class="small">Carregar do relatório <select id="ownFleetPrefillSel"></select></label>
+        <button class="act secondary" id="ownFleetPrefillBtn" type="button">Preencher</button>
+      </div>
+      <p class="small muted" id="ownFleetNoFleetsNote" style="display:none;">Sem frotas no relatório carregado — adiciona manualmente.</p>
+      <div class="tbl-wrap"><table id="ownFleetTable">
+        <thead><tr><th>Raça</th><th>Navio</th><th>WP</th><th>Qtd.</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <div class="flexrow" style="margin-top:8px;">
+        <select id="ownFleetStackRace" style="width:100px;"></select>
+        <select id="ownFleetStackUnit" style="width:140px;"></select>
+        <input type="number" id="ownFleetStackQty" value="5" min="1" style="width:70px;">
+        <button class="act secondary" id="ownFleetStackAddBtn" type="button">+ Adicionar</button>
+      </div>
+      <div class="flexrow" style="margin-top:10px;">
+        <label class="small">Comandante <select id="ownFleetCommander"></select></label>
+      </div>
+      <div class="flexrow" style="margin-top:6px;">
+        <label class="small">ESTADO % <input type="number" id="ownFleetStatus" value="100" min="10" max="100" style="width:70px;"></label>
+        <label class="small"><input type="checkbox" id="ownFleetPortMod"> Começou o turno num porto próprio/aliado (×1,25)</label>
+      </div>
+      <div class="flexrow" style="margin-top:6px;">
+        <label class="small"><input type="checkbox" id="ownFleetCargo"> A transportar um exército (×0,85)</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎯 Frota Inimiga (+ coligação)</h3>
+      <div class="tbl-wrap"><table id="enemyFleetTable">
+        <thead><tr><th>Raça</th><th>Navio</th><th>WP</th><th>Qtd.</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <div class="flexrow" style="margin-top:8px;">
+        <select id="enemyFleetStackRace" style="width:100px;"></select>
+        <select id="enemyFleetStackUnit" style="width:140px;"></select>
+        <input type="number" id="enemyFleetStackQty" value="5" min="1" style="width:70px;">
+        <button class="act secondary" id="enemyFleetStackAddBtn" type="button">+ Adicionar</button>
+        <label class="small"><input type="checkbox" id="enemyIsPirate"> Frota pirata (×1,10)</label>
+      </div>
+      <div class="flexrow" style="margin-top:8px;">
+        <label class="small">Militar do comandante (0 = sem) <input type="number" id="enemyFleetCommander" value="0" min="0" style="width:70px;"></label>
+      </div>
+      <div class="flexrow" style="margin-top:6px;">
+        <label class="small">ESTADO % <input type="number" id="enemyFleetStatus" value="100" min="10" max="100" style="width:70px;"></label>
+        <label class="small"><input type="checkbox" id="enemyFleetPortMod"> Começou o turno num porto próprio/aliado (×1,25)</label>
+      </div>
+      <div class="flexrow" style="margin-top:6px;">
+        <label class="small"><input type="checkbox" id="enemyFleetCargo"> A transportar um exército (×0,85)</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Contexto</h3>
+    <label class="small">Quem ataca <select id="whoAttacksNaval">
+      <option value="own">Eu ataco</option>
+      <option value="enemy">Eu defendo (o inimigo ataca)</option>
+    </select></label>
+    <button class="act" id="calcNavalBtn" style="margin-top:10px;">Calcular Batalha Naval</button>
+  </div>
+
+  <div class="card" id="navalResultCard" style="display:none;">
+    <h3>Resultado Esperado</h3>
+    <div id="navalResult"></div>
+  </div>
+  </div>
+</section>
+
 <!-- CALCULADORA DE CERCO -->
 <section class="tab" id="tab-cerco">
   <div class="card">
     <h2>🏰 Calculadora de Cerco</h2>
-    <p class="small">Aplica as fórmulas exatas do manual (§5.8.1–5.8.3). Um cerco exige DUAS condições em simultâneo — corpos suficientes para fechar o anel e Poder de Guerra suficiente para dominar a milícia — e ambas usam o WP <b>bruto</b> do teu exército, sem escala de terreno (§3.5.1).</p>
+    <p class="small">Aplica as fórmulas exatas do manual (§5.8.1–5.8.3, atualizado 2026-09-21). Um cerco exige DUAS condições em simultâneo — corpos suficientes para fechar o anel e Poder de Guerra (já multiplicado pelo ESTADO) suficiente para dominar a milícia.</p>
   </div>
 
   <div class="card">
@@ -430,18 +636,25 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
     <div class="flexrow">
       <label class="small">População do assentamento <input type="number" id="siegeTargetPop" value="2000" min="1" style="width:100px;"></label>
       <label class="small">Tipo <select id="siegeTargetType">
-        <option value="common">Construção comum (cai &gt;3 — 4 turnos)</option>
-        <option value="seat">Assento de Recrutamento (cai &gt;4 — 5 turnos)</option>
+        <option value="common">Construção comum (cai &gt;4 — 5 turnos)</option>
+        <option value="seat">Assento de Recrutamento (cai &gt;5 — 6 turnos)</option>
       </select></label>
+      <label class="small">ESTADO do teu exército % <input type="number" id="siegeStatus" value="100" min="10" max="100" style="width:70px;"></label>
     </div>
   </div>
 
   <div class="card">
-    <h3>O Teu Exército Sitiante</h3>
+    <h3>O Teu Exército Sitiante (+ aliados)</h3>
     <div class="tbl-wrap"><table id="siegeArmyTable">
-      <thead><tr><th>Unidade</th><th>WP</th><th>Corpo</th><th>Qtd.</th></tr></thead>
+      <thead><tr><th>Raça</th><th>Unidade</th><th>WP</th><th>Corpo</th><th>Qtd.</th><th></th></tr></thead>
       <tbody></tbody>
     </table></div>
+    <div class="flexrow" style="margin-top:8px;">
+      <select id="siegeStackRace" style="width:100px;"></select>
+      <select id="siegeStackUnit" style="width:140px;"></select>
+      <input type="number" id="siegeStackQty" value="10" min="1" style="width:70px;">
+      <button class="act secondary" id="siegeStackAddBtn" type="button">+ Adicionar</button>
+    </div>
     <button class="act" id="calcSiegeBtn" style="margin-top:10px;">Calcular Cerco</button>
   </div>
 
@@ -474,7 +687,7 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
 <section class="tab" id="tab-balanco">
   <div class="card">
     <h2>⚖ Balanço — Produção vs. Consumo por Turno</h2>
-    <p class="small">Produção usa sempre o piso garantido (nunca o teto). Consumo é o que as tuas tropas em pé gastam continuamente, todos os turnos — separado do custo único de as recrutar. O objetivo: nunca ficar em défice, e ver que excedente tens disponível para vender no mercado.</p>
+    <p class="small">Produção usa sempre o valor garantido (nunca o máximo possível). Consumo é o que as tuas tropas em pé gastam continuamente, todos os turnos — separado do custo único de as recrutar. O objetivo: nunca ficar em défice, e ver que excedente tens disponível para vender no mercado.</p>
   </div>
   <div class="card" id="deficitAlert" style="display:none;"></div>
   <div class="card">
@@ -492,15 +705,32 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
     <ul class="small">
       <li><b>Comida</b> — cada soldado a pé come 1/turno; montado come 2/turno (1 se fores Nómada — bónus racial, §2.10.4).</li>
       <li><b>Ouro e Ferro</b> — manutenção contínua por unidade (`upkeep`), diferente do custo único de recrutamento.</li>
-      <li><b>Madeira, Pedra e Cavalos</b> — sem consumo recorrente neste jogo; só custos únicos (construção, recrutamento). Qualquer stock destes é excedente por definição, disponível para vender.</li>
+      <li><b>Madeira e Pedra</b> — sem produção nem consumo recorrentes; só custos únicos (construção, recrutamento). Qualquer stock destes é excedente por definição, disponível para vender.</li>
+      <li><b>Cavalos</b> — criação própria (§2.9.9): 1–3%/turno do rebanho atual (+ Mestre dos Cavalos: gestão×0,02 pontos), arredondado para cima, só com 2 ou mais cavalos (par reprodutor); sem consumo recorrente, só custo único ao recrutar cavalaria.</li>
     </ul>
   </div>
+</section>
+
+<!-- ORDENS ENVIADAS -->
+<section class="tab" id="tab-ordens">
+  <div class="card">
+    <h2>📝 Carregar Ordens</h2>
+    <p class="small">Carrega o ficheiro de ordens que exportas do <code>player_page</code> antes de o enviares ao GM (não o relatório — o ficheiro de <b>ordens</b>, o que tu produzes). O painel traduz cada ordem para português e risca sozinho os marcos do Plano de Campanha que já cumpriste este turno.</p>
+    <div class="upbox" id="ordersDropZone">📂 Clica para escolher o ficheiro de ordens (.json)<br><span class="small">ou arrasta o ficheiro para aqui</span></div>
+    <input type="file" id="ordersFileInput" accept=".json" style="display:none;">
+    <div id="ordersLoadStatus" class="small" style="margin-top:8px;"></div>
+  </div>
+  <div class="card" id="ordersSummaryCard" style="display:none;">
+    <h3>Resumo deste turno</h3>
+    <div class="grid cols3" id="ordersSummaryStats"></div>
+  </div>
+  <div id="ordersLogCard"></div>
 </section>
 
 <!-- CARREGAR -->
 <section class="tab" id="tab-carregar">
   <div class="card">
-    <h2>Carregar um novo relatório de turno</h2>
+    <h2>📥 Carregar Relatório</h2>
     <p class="small">Esta ferramenta vem pré-carregada com o teu relatório da Jogada 0. Quando receberes o próximo relatório do GM, carrega o ficheiro .json aqui para atualizar todos os cálculos.</p>
     <div class="upbox" id="dropZone">📂 Clica para escolher o ficheiro do relatório (.json)<br><span class="small">ou arrasta o ficheiro para aqui</span></div>
     <input type="file" id="fileInput" accept=".json" style="display:none;">
@@ -509,17 +739,18 @@ button.act.secondary{background:transparent;border:1px solid var(--gold-dim);col
   <div class="card">
     <h3>O que esta ferramenta faz — e o que não faz</h3>
     <ul class="small">
-      <li>Calcula rendimentos, custos de construção/melhoria, recrutamento e cenários de imposto usando as fórmulas exatas do manual v586 e da Página do Jogador V248.</li>
+      <li>Calcula rendimentos, custos de construção/melhoria, recrutamento e cenários de imposto usando as fórmulas exatas do manual v747 e da Página do Jogador V350.</li>
       <li><b>Não</b> gera nem assina um ficheiro de ordens — continua a emitir as tuas ordens na Página do Jogador oficial. Esta ferramenta é só para decidir o que ordenar.</li>
-      <li>Os valores de produção variável (quintas, portos) mostram sempre o piso garantido e o teto possível — nunca uma previsão exata, porque o motor rola de novo a cada turno.</li>
+      <li>Os valores de produção variável (quintas, portos) mostram sempre o valor garantido e o máximo possível — nunca uma previsão exata, porque o motor rola de novo a cada turno.</li>
     </ul>
   </div>
 </section>
 
 </div>
+</div>
 
 <script>
-/* ============================== DADOS DO MOTOR (sincronizados com o manual v586 / player_page V248) ============================== */
+/* ============================== DADOS DO MOTOR (sincronizados com o manual v747 / player_page V350) ============================== */
 const SITE_COSTS={farm:1000,mine:1000,port:5000,lumbermill:1000,quarry:1000};
 const C_MINE_FIND_CHANCE={mountain:0.25,hills:0.15,desert:0.07,plains:0.07,forest:0.05};
 const C_MINE_MAX_LEVEL={mountain:3,hills:2,desert:2,plains:1,forest:1};
@@ -646,6 +877,37 @@ const UNIT_ROSTER_BY_RACE={
 };
 function getUnits(){ return UNIT_ROSTER_BY_RACE[STATE.race] || []; }
 
+/* ---- Elencos de navios (byte-idêntico ao motor — SHIP_ROSTER). Orc e Anão não têm frota por desenho. ---- */
+const SHIP_ROSTER_BY_RACE={
+  Imperial:[
+    {id:'trireme',name:'Drommund',atk:6,def:5,capacity:100,cost:{gold:155,iron:9,wood:50},upkeep:{gold:4},wp:66,mp:90},
+    {id:'war_galleon',name:'Cog',atk:10,def:8,capacity:200,cost:{gold:310,iron:24,wood:90},upkeep:{gold:8},wp:108,mp:60},
+    {id:'dreadnought',name:'Galley',atk:12,def:11,capacity:300,cost:{gold:550,iron:36,wood:130},upkeep:{gold:15},wp:138,mp:60},
+  ],
+  Barbarian:[
+    {id:'longship',name:'Wolfship',atk:8,def:4,capacity:80,cost:{gold:135,iron:8,food:10,wood:45},upkeep:{gold:3},wp:72,mp:90},
+    {id:'sea_raider',name:'Reaver',atk:11,def:5,capacity:120,cost:{gold:245,iron:13,food:15,wood:65},upkeep:{gold:5},wp:96,mp:90},
+    {id:'drakkar',name:'Tigress',atk:14,def:7,capacity:200,cost:{gold:435,iron:22,food:25,wood:100},upkeep:{gold:14},wp:126,mp:60},
+  ],
+  Elf:[
+    {id:'moonskiff',name:'Moonskiff',atk:7,def:6,capacity:60,cost:{gold:170,iron:4,wood:40},upkeep:{gold:5},wp:78,mp:90},
+    {id:'tide_warden',name:'Navio Branco',atk:10,def:9,capacity:100,cost:{gold:295,iron:7,wood:60},upkeep:{gold:8},wp:114,mp:90},
+    {id:'starbreaker',name:'Navio-Cisne',atk:16,def:8,capacity:150,cost:{gold:545,iron:13,wood:85},upkeep:{gold:16},wp:144,mp:60},
+  ],
+  Aesir:[
+    {id:'aesir_snekkja',name:'Snekkja',atk:8,def:4,capacity:80,cost:{gold:120,iron:9,food:10,wood:45},upkeep:{gold:3},wp:72,mp:120},
+    {id:'aesir_drakkar',name:'Drakar',atk:12,def:6,capacity:140,cost:{gold:300,iron:20,food:20,wood:75},upkeep:{gold:8},wp:112,mp:90},
+    {id:'aesir_busse',name:'Busse',atk:14,def:9,capacity:220,cost:{gold:490,iron:31,food:30,wood:105},upkeep:{gold:14},wp:136,mp:60},
+  ],
+  Nomad:[
+    {id:'nomad_dhow',name:'Dhow',atk:6,def:4,capacity:100,cost:{gold:145,iron:2,food:5,wood:50},upkeep:{gold:3},wp:56,mp:90},
+    {id:'nomad_shini',name:'Shini',atk:10,def:6,capacity:140,cost:{gold:300,iron:10,wood:70},upkeep:{gold:6},wp:98,mp:60},
+    {id:'nomad_harraqa',name:'Harraqa',atk:13,def:5,capacity:60,cost:{gold:360,iron:5,wood:45},upkeep:{gold:10},wp:116,mp:60},
+  ],
+};
+function getShips(){ return SHIP_ROSTER_BY_RACE[STATE.race] || []; }
+function shipGoldEqCost(cost){ return (cost.gold||0)+(cost.iron||0)*12+(cost.wood||0)*5; } // sem cavalos — navios nunca custam cavalos
+
 /* ---- Bónus racial de terreno em combate (§3.5) ---- */
 const RACE_HOME_BONUS={
   Imperial:{terrain:null,mult:null,note:'Sem bónus de terreno — em vez disso, ×1,10 ao defender hexágono próprio com construção FI ou POP (bónus Legião).'},
@@ -678,7 +940,7 @@ const RACE_NOTES={
   Barbarian:['Bónus de combate ×1,15 em colinas — o teu terreno natal.','Escada larga e barata (muitas etapas de 500g) — cresce rápido em número de assentamentos.'],
   Elf:['Bónus de combate ×1,30 em floresta — o mais alto do jogo.','Exceção única: pode construir um porto em floresta costeira, além de planícies.','Swordmaster e Bladedancer são as únicas unidades do jogo que não custam madeira.'],
   Dwarf:['Bónus de combate ×1,30 em montanha — empatado com o Elfo como o mais alto do jogo.','Todas as unidades dependem de ferro — mantém sempre minas de ferro operacionais.','Mestres-construtores: pagam apenas metade (arredondado para cima) em pedra em melhorias/reparações/fundações.','Não pode construir portos nem navios — é uma raça inteiramente terrestre.','Forjas (colocadas pelo GM) dão +2% XP a exércitos anões estacionários — vale a pena parar lá.'],
-  Orc:['Bónus de combate ×1,20 em pântano — o teu terreno natal.','Reprodução de tropas: exércitos de 10+ soldados a pé num hexágono de pântano ganham 5–7%/turno.','Fome é mais severa para Orcs (10–20% de perdas vs. 3–10% de outras raças) — cuidado com o stock de comida.','Não pode construir portos nem navios.','Fundação começa num Nível 0 especial (100 pop, sem muro) — abaixo do Nv.1 normal de 1.000 pop.'],
+  Orc:['Bónus de combate ×1,20 em pântano — o teu terreno natal.','Reprodução de tropas: exércitos com 10+ soldados a pé <b>Orc</b> num hexágono de pântano ganham 5–7%/turno (tropas de outros povos e máquinas de cerco não se reproduzem nem contam).','Fome é mais severa para Orcs (10–20% de perdas vs. 3–10% de outras raças) — cuidado com o stock de comida.','Não pode construir portos nem navios.','Fundação começa num Nível 0 especial (100 pop, sem muro) — abaixo do Nv.1 normal de 1.000 pop.'],
   Aesir:['Sem bónus de combate terrestre — a força Aesir está no mar: ×1,05 em cada rolagem de batalha naval.','Único casco de 120 MP do jogo (Snekkja) — a frota mais rápida.','Muralhas construídas em madeira, não pedra — precisa de acesso a floresta tanto quanto ao mar.'],
   Nomad:['Bónus de combate ×1,25 em deserto — o teu terreno natal.','Atravessa deserto a 30 MP (2 hexágonos/turno a pé), onde as outras raças pagam 60 MP (1 hexágono).','Cavalaria (Beduínos, Askari) come apenas 1 comida/cabeça, não 2 — cavalaria muito mais barata de manter.','Única raça que pode mover um acampamento inteiro (até 2 hexágonos, 1.000g, cooldown de 6 turnos).','Fundação já começa no Nv.1 (sem nível especial abaixo) — 100 pop, sem muro.'],
 };
@@ -784,23 +1046,34 @@ const TERRAIN_LABEL={plains:'Planícies',desert:'Deserto',forest:'Floresta',moun
 
 // Escala de cavalaria por terreno de batalha (§3.5.1) — aplica-se só à fração montada de cada lado
 const CAV_TERRAIN_SCALE={plains:1.20,hills:0.90,forest:0.70,swamp:0.60,mountain:0.70,desert:0.85,sea:1.0};
-const SITE_LABEL={farm:'Quinta',mine:'Mina',port:'Porto',lumbermill:'Serraria',quarry:'Pedreira'};
+const SITE_LABEL={farm:'Quinta',mine:'Mina',port:'Porto',lumbermill:'Serraria',quarry:'Pedreira',forge:'Forja'};
+const SITE_LABEL_BUILDABLE_KEYS=['farm','mine','port','lumbermill','quarry']; // Forja fica de fora — só o GM a coloca, nunca por ordem do jogador (§3.6.4)
 const SITE_TERRAIN_ELIGIBLE={
   farm:['plains'], mine:['mountain','hills','desert','plains','forest'],
   port:['plains'], lumbermill:['forest'], quarry:['plains','hills','mountain']
 };
 // Porto: Orc e Anão nunca podem construir; Elfo pode também em floresta costeira (exceção única, §3.6.3)
-function siteEligible(type, terrain, race){
+function siteEligible(type, terrain, race, constructionRace){
   if(type==='port'){
     if(race==='Orc'||race==='Dwarf') return false;
-    const terrains = race==='Elf' ? ['plains','forest'] : ['plains'];
-    return terrains.includes(terrain);
+    if(terrain==='forest'){
+      // Elfo pode construir porto em floresta, mas só sob uma construção Élfica (2026-09-24)
+      return race==='Elf' && constructionRace==='Elf';
+    }
+    return terrain==='plains';
   }
   return SITE_TERRAIN_ELIGIBLE[type].includes(terrain);
 }
 
 /* ============================== ESTADO (carregado do relatório) ============================== */
 let STATE = null;
+
+// APP_VERSION: sobe isto (e o CACHE_NAME correspondente em sw.js) sempre que publicares uma versão nova no GitHub.
+// É o que aparece no canto superior direito da app — se não mudar depois de um deploy, o browser ainda está
+// a servir a cache antiga do service worker.
+const APP_VERSION = 'v4.0 · 2026-10-15';
+document.getElementById('appVersionBadge').textContent = APP_VERSION.split(' · ')[0];
+document.getElementById('appVersionBadge').title = 'Versão do painel: '+APP_VERSION;
 
 const SEED = {"kingdom_id": null, "kingdom_name": "", "race": "", "resources": {"food": 0, "gold": 0, "iron": 0, "horses": 0, "wood": 0, "stone": 0}, "opinion": 0, "taxRate": 0, "characters": [], "candidate_pool": [], "market_prices": {"food": 8, "iron": 12, "horses": 20, "wood": 5, "stone": 7}, "hexes": [], "turn": 0, "armies": [], "fleets": [], "events": [], "diplomacy": {}, "map_kingdoms": [], "vassal_of": null, "vassals": []};
 
@@ -810,18 +1083,25 @@ function loadState(raw){
   if(raw.map_state){
     const kid = raw.kingdom_id;
     const hexes = raw.map_state.hexes.filter(h=>h.kingdom===kid);
+    // Guardado à parte, só para o separador Mapa — nunca entra nos cálculos económicos/território,
+    // que continuam a usar só "hexes" (os teus). Hidden não traz informação nenhuma, não vale a pena guardar.
+    const mapHexes = raw.map_state.hexes.filter(h=>h.visibility==='full'||h.visibility==='border');
     s = {
       kingdom_id: kid, kingdom_name: raw.kingdom_name, race: raw.kingdom_race,
       resources: raw.kingdom_state.resources, opinion: raw.kingdom_state.opinion,
       taxRate: raw.kingdom_state.taxRate, characters: raw.kingdom_state.characters,
       candidate_pool: raw.kingdom_state.candidate_pool || [],
-      market_prices: raw.market_prices, hexes, turn: raw.turn,
+      market_prices: raw.market_prices, hexes, mapHexes, turn: raw.turn,
       armies: raw.kingdom_state.armies||[], fleets: raw.kingdom_state.fleets||[],
       events: raw.events||[], diplomacy: raw.kingdom_state.diplomacy||{},
+      conquered_hexes: raw.conquered_hexes||[], lost_hexes: raw.lost_hexes||[],
       map_kingdoms: (raw.map_state.kingdoms||[]).map(k=>({id:k.id,name:k.name,race:k.race,pirate:k.pirate})),
       vassal_of: raw.kingdom_state.vassal_of||null, vassals: raw.kingdom_state.vassals||[],
+      // Mapa circular (manual v747 §2.14.8): o relatório diz se as colunas dão a volta (este↔oeste); sem o campo = mapa plano
+      mapCols: raw.map_state.cols||null, mapRows: raw.map_state.rows||null,
+      wrap: {cols: !!(raw.map_state.wrap&&raw.map_state.wrap.cols), rows: !!(raw.map_state.wrap&&raw.map_state.wrap.rows)},
     };
-  } else { s = raw; s.turn = s.turn ?? 0; s.events = s.events||[]; s.diplomacy = s.diplomacy||{}; s.map_kingdoms = s.map_kingdoms||[]; }
+  } else { s = raw; s.turn = s.turn ?? 0; s.events = s.events||[]; s.diplomacy = s.diplomacy||{}; s.map_kingdoms = s.map_kingdoms||[]; s.conquered_hexes = s.conquered_hexes||[]; s.lost_hexes = s.lost_hexes||[]; s.mapHexes = s.mapHexes||[]; s.lastOrders = s.lastOrders||null; }
   STATE = s;
   computeDiff();
   saveDetailedSnapshot();
@@ -932,6 +1212,24 @@ function portYield(pop,lv){
   const foodMax = floor(pop*r.max);
   return {gold, foodMin:0, foodMax};
 }
+// Escalões de portos (§3.6.3, novo): ranqueados por ouro bruto, 1º-5º pagam 100%, 6º-10º 90%, 11º-15º 80%... -10%/5 postos, ouro e comida por igual
+function portBracketMultiplier(rank){ return Math.max(0, 1 - 0.1*Math.floor((rank-1)/5)); }
+// Devolve {"col,row": multiplicador} para todos os portos já existentes num array de hexágonos
+function getPortBracketMap(hexes){
+  const ports = hexes.filter(h=>h.site&&h.site.type==='port').map(h=>{
+    const lv=h.site.size||1;
+    return {key:`${h.col},${h.row}`, rawGold:portYield(h.population,lv).gold};
+  }).sort((a,b)=>b.rawGold-a.rawGold);
+  const map={};
+  ports.forEach((p,i)=>{ map[p.key]=portBracketMultiplier(i+1); });
+  return map;
+}
+// Para pré-visualizar um porto NOVO ainda por construir: onde ficaria no ranking se o construísses já
+function hypotheticalPortBracket(hexes, newRawGold){
+  const existingGolds = hexes.filter(h=>h.site&&h.site.type==='port').map(h=>portYield(h.population,h.site.size||1).gold);
+  const rank = existingGolds.filter(g=>g>newRawGold).length + 1;
+  return portBracketMultiplier(rank);
+}
 function mineYield(pop,lv){ return PROD_MINE_BASE[lv] + floor(pop*lv/PROD_MINE_DIVISOR); }
 function lumberYield(pop,lv){ return Math.max(1, floor(pop*PROD_LUMBERMILL_MULT[lv])); }
 function quarryYield(pop,lv,terrain){
@@ -940,6 +1238,62 @@ function quarryYield(pop,lv,terrain){
 }
 
 /* ============================== RENDER: VISÃO GERAL ============================== */
+function renderBattleLog(){
+  const card = document.getElementById('battleLogCard');
+  const conquered = STATE.conquered_hexes||[];
+  const lost = STATE.lost_hexes||[];
+  if(!conquered.length && !lost.length){ card.style.display='none'; return; }
+  card.style.display='block';
+
+  const events = STATE.events||[];
+  const findEvent = (col,row,wantTitle)=> events.find(e=>{
+    if(!new RegExp('^'+wantTitle).test(e.title||'')) return false;
+    const m = (e.title||'').match(/\(([\-\d]+),\s*([\-\d]+)\)/);
+    return m && parseInt(m[1])===col && parseInt(m[2])===row;
+  });
+
+  let html = '';
+  const tierPT = {Crushing:'Esmagadora', Decisive:'Decisiva', Costly:'Cara', Narrow:'Renhida', Pyrrhic:'Pírrica'};
+  conquered.forEach(h=>{
+    const e = findEvent(h.col,h.row,'Conquered');
+    const sp = (e&&e.spoils)||{};
+    html += `<div class="recommend good"><b>🏴 Conquistaste (${h.col},${h.row})</b> — ${TERRAIN_LABEL[h.terrain]||h.terrain}.${sp.tier?` Vitória: ${tierPT[sp.tier]||sp.tier} (${Math.round((sp.pct||0)*100)}% de saque)`:''}${(sp.food||sp.iron||sp.horses)?` — saque: ${sp.food?fmt(sp.food)+' comida ':''}${sp.iron?fmt(sp.iron)+' ferro ':''}${sp.horses?fmt(sp.horses)+' cavalos':''}`:''}</div>`;
+  });
+  lost.forEach(h=>{
+    const e = findEvent(h.col,h.row,'Lost');
+    const attackerRace = e&&e.attackerRace;
+    const troopMatch = e&&e.effect ? e.effect.match(/Invading force:\s*(\d+)\s*troops?\s*(\(([^)]+)\))?/i) : null;
+    const troopCount = troopMatch ? parseInt(troopMatch[1]) : null;
+    const mountedRaw = troopMatch ? troopMatch[3] : null;
+    const mountedPT = mountedRaw==='all mounted' ? 'todas montadas' : mountedRaw==='on foot' ? 'a pé' : mountedRaw||'';
+    let line = `<b>🏳 Perdeste (${h.col},${h.row})</b> — ${TERRAIN_LABEL[h.terrain]||h.terrain}.`;
+    if(attackerRace) line += ` Atacante: ${RACE_LABEL_PT[attackerRace]||attackerRace}`;
+    if(troopCount) line += `, força estimada de ${fmt(troopCount)} tropas${mountedPT?` (${mountedPT})`:''}`;
+    line += '.';
+    let btn = '';
+    if(troopCount && attackerRace && UNIT_ROSTER_BY_RACE[attackerRace]){
+      const wantMounted = mountedRaw==='all mounted';
+      btn = `<br><button type="button" class="act secondary battleLogPrefillBtn" data-race="${attackerRace}" data-count="${troopCount}" data-mounted="${wantMounted?'1':'0'}" style="margin-top:6px;">Usar esta estimativa na Calculadora de Batalha</button>`;
+    }
+    html += `<div class="recommend bad">${line}${btn}</div>`;
+  });
+  document.getElementById('battleLogList').innerHTML = html;
+
+  document.querySelectorAll('.battleLogPrefillBtn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const race = btn.dataset.race, count = parseInt(btn.dataset.count), wantMounted = btn.dataset.mounted==='1';
+      const roster = (UNIT_ROSTER_BY_RACE[race]||[]).filter(u=>u.wp>10 && (wantMounted?u.mounted:true));
+      const unit = roster.slice().sort((a,b)=>(a.cost.gold||1)-(b.cost.gold||1))[0];
+      if(!unit) return;
+      const stacks = getStackState('enemy');
+      const existing = stacks.find(s=>s.race===race && s.unitId===unit.id);
+      if(existing) existing.qty += count; else stacks.push({race, unitId:unit.id, qty:count});
+      document.querySelector('#tabnav button[data-tab="batalha"]').click();
+      renderStackTable('enemy', UNIT_ROSTER_BY_RACE);
+    };
+  });
+}
+
 function renderAlerts(){
   const card = document.getElementById('alertsCard');
   const events = (STATE.events||[]).filter(e=>e.type==='negative'||e.type==='warning');
@@ -955,7 +1309,7 @@ function renderPersonalitySelector(){
   document.getElementById('personalityPills').innerHTML = Object.entries(PERSONALITY_DEFS).map(([id,p])=>{
     const active = sel.includes(id);
     const disabled = !active && p.disabledFor && p.disabledFor(STATE);
-    return `<span class="pill personality-pill" data-pid="${id}" title="${p.desc}" style="cursor:pointer;padding:5px 10px;font-size:.78rem;${active?'border-color:var(--gold);color:var(--gold);background:rgba(212,169,74,0.1);':''}${disabled?'opacity:.4;':''}">${p.emoji} ${p.label}</span>`;
+    return `<span class="pill personality-pill" data-pid="${id}" title="${p.desc}" style="cursor:pointer;padding:5px 10px;font-size:.78rem;${active?'border-color:var(--gold);color:var(--gold);background:rgba(255,255,255,0.07);':''}${disabled?'opacity:.4;':''}">${p.emoji} ${p.label}</span>`;
   }).join('');
   document.querySelectorAll('.personality-pill').forEach(el=>{
     el.addEventListener('click', ()=>{
@@ -996,7 +1350,26 @@ function renderDiff(){
 }
 
 const RACE_EMOJI={Imperial:'🏛',Barbarian:'🪓',Elf:'🌿',Dwarf:'⛏',Orc:'👹',Aesir:'🛡',Nomad:'🏜'};
+// Acento visual por raça — a base "sala de mapas" fica sempre neutra; só isto muda.
+const RACE_ACCENT={
+  Nomad:     {gold:'#d4a94a', dim:'#9c7a35'}, // areia dourada
+  Elf:       {gold:'#7ab56f', dim:'#4a7a48'}, // verde-floresta
+  Dwarf:     {gold:'#c9884a', dim:'#93602f'}, // cobre de forja
+  Aesir:     {gold:'#6fa8c9', dim:'#4a7a93'}, // azul-fiorde
+  Orc:       {gold:'#b2503a', dim:'#7a3526'}, // vermelho-musgo
+  Imperial:  {gold:'#c9a13c', dim:'#93732a'}, // ouro real
+  Barbarian: {gold:'#c9622e', dim:'#93481f'}, // ferrugem
+};
+function applyRaceAccent(){
+  const a = RACE_ACCENT[STATE.race] || {gold:'#c7ac74', dim:'#8a7a52'}; // neutro, sem raça carregada
+  const root = document.documentElement.style;
+  root.setProperty('--gold', a.gold);
+  root.setProperty('--gold-dim', a.dim);
+  root.setProperty('--sand', a.gold);
+}
+
 function renderHeader(){
+  applyRaceAccent();
   if(!STATE.kingdom_id){
     document.getElementById('kingdomTitle').textContent = '🏰 TREVASXXI';
     document.getElementById('kingdomSubtitle').textContent = 'Painel de Decisão · nenhum relatório carregado';
@@ -1017,6 +1390,7 @@ function renderVisaoGeral(){
     welcomeCard.style.display='none';
   }
   renderPersonalitySelector();
+  renderBattleLog();
   renderDiff();
   renderAlerts();
   const r = STATE.resources;
@@ -1030,6 +1404,7 @@ function renderVisaoGeral(){
   let goldTotal=0, foodMin=0, foodMax=0, ironTotal=0, woodTotal=0, stoneTotal=0;
   const rows=[];
   const pop = totalPop();
+  const portBracketMap = getPortBracketMap(STATE.hexes);
   const taxRate = STATE.taxRate;
   const rawTax = floor(pop*taxRate/100);
   const pen = taxPenaltyPct(STATE.opinion);
@@ -1043,14 +1418,14 @@ function renderVisaoGeral(){
     if(h.site){
       const lv = h.site.size||1;
       if(h.site.type==='farm'){ const y=farmYield(h.population,lv); foodMin+=y.min; foodMax+=y.max; }
-      if(h.site.type==='port'){ const y=portYield(h.population,lv); goldTotal+=y.gold; foodMin+=0; foodMax+=y.foodMax; }
+      if(h.site.type==='port'){ const y=portYield(h.population,lv); const mult=portBracketMap[`${h.col},${h.row}`]||1; goldTotal+=floor(y.gold*mult); foodMin+=0; foodMax+=floor(y.foodMax*mult); }
       if(h.site.type==='mine'){ const y=mineYield(h.population,lv); ironTotal+=y; }
       if(h.site.type==='lumbermill'){ const y=lumberYield(h.population,lv); woodTotal+=y; }
       if(h.site.type==='quarry'){ const y=quarryYield(h.population,lv,h.terrain); stoneTotal+=y; }
     }
   });
 
-  rows.push(['🌾 Terreno + Quintas + Portos', fmt(foodMin)+' (piso)', fmt(foodMax)+' (teto)', 'Planícies sem local: +1 · Quintas e Portos rolam por turno']);
+  rows.push(['🌾 Terreno + Quintas + Portos', fmt(foodMin)+' (garantido)', fmt(foodMax)+' (máximo)', 'Planícies sem local: +1 · Quintas e Portos rolam por turno']);
   if(ironTotal) rows.push(['⚙ Minas', fmt(ironTotal)+'g equiv.', '—', 'Determinístico']);
   if(woodTotal) rows.push(['🪵 Serrarias', fmt(woodTotal), '—', 'Determinístico (mín. 1)']);
   if(stoneTotal) rows.push(['🪨 Pedreiras', fmt(stoneTotal), '—', 'Determinístico (mín. 1)']);
@@ -1078,13 +1453,17 @@ function renderVisaoGeral(){
     recs.push(`<div class="recommend"><b>${RACE_LABEL_PT[STATE.race]} não pode construir portos nem navios.</b> Foca o investimento em minas, quintas, serrarias e pedreiras — a tua economia é inteiramente terrestre.</div>`);
   }
   if(STATE.characters.filter(c=>c.assignment==='none' && !c.dead).length){
-    recs.push(`<div class="recommend"><b>Tens personagem(ns) sem atribuição.</b> ${STATE.characters.filter(c=>c.assignment==='none').map(c=>c.name+` (Gestão ${c.management})`).join(', ')} — atribui como Tesoureiro/Mestre para começar a ganhar o bónus de rendimento já no próximo turno (§2.9.7).</div>`);
+    recs.push(`<div class="recommend"><b>Tens personagem(ns) sem atribuição.</b> ${STATE.characters.filter(c=>c.assignment==='none').map(c=>c.name+` (Gestão ${c.management})`).join(', ')} — atribui como Tesoureiro/Mestre (ou Mestre dos Cavalos) para começar a ganhar o bónus de rendimento já no próximo turno (§2.9.7).</div>`);
   }
   if(taxRate>5 && STATE.opinion<=50){
     recs.push(`<div class="recommend warn"><b>Atenção:</b> taxa de imposto (${taxRate}%) acima de 5% com Opinião ${STATE.opinion} — já estás a perder ${pen}% do imposto bruto em penalização, e a opinião vai continuar a cair (${taxOpinionDelta(taxRate)}/turno).</div>`);
   }
-  if(!STATE.armies || STATE.armies.length===0){
-    recs.push(`<div class="recommend"><b>Sem exércitos.</b> No teu primeiro turno vale a pena recrutar pelo menos um punhado de Rajjala/Naffatun no teu assento de recrutamento (14,31) — são baratos e dão alguma defesa imediata. Vê o separador Recrutamento.</div>`);
+  if(STATE.hexes.length && (!STATE.armies || STATE.armies.length===0)){
+    const seat = STATE.hexes.find(h=>h.musterSeatOf===STATE.kingdom_id) || STATE.hexes.find(h=>h.musterSeatOf);
+    const cheapUnits = getUnits().filter(u=>u.wp>10).slice().sort((a,b)=>(b.wp/(b.cost.gold||1))-(a.wp/(a.cost.gold||1))).slice(0,2).map(u=>u.name).join('/');
+    if(seat && cheapUnits){
+      recs.push(`<div class="recommend"><b>Sem exércitos.</b> No teu primeiro turno vale a pena recrutar pelo menos um punhado de ${cheapUnits} no teu assento de recrutamento (${seat.col},${seat.row}) — são baratos e dão alguma defesa imediata. Vê o separador Recrutamento.</div>`);
+    }
   }
   document.getElementById('recommendations').innerHTML = recs.join('') || '<p class="muted">Sem recomendações específicas neste momento.</p>';
 }
@@ -1097,6 +1476,15 @@ function isAdjacentSea(h){
 
 /* ============================== RENDER: TERRITÓRIO ============================== */
 function renderTerritorio(){
+  const seat = STATE.hexes.find(h=>h.musterSeatOf===STATE.kingdom_id) || STATE.hexes.find(h=>h.musterSeatOf);
+  const introEl = document.getElementById('territorioIntro');
+  if(!STATE.hexes.length){
+    introEl.textContent = 'Sem hexágonos carregados ainda — vai a "Carregar Relatório".';
+  } else if(seat){
+    introEl.innerHTML = `${STATE.hexes.length} hexágono(s) — assento de recrutamento em <b>(${seat.col},${seat.row})</b>${seat.construction?` — construção Nv.${seat.construction.level} (${seat.construction.race})`:''}.`;
+  } else {
+    introEl.textContent = `${STATE.hexes.length} hexágono(s) — sem assento de recrutamento identificado neste relatório.`;
+  }
   const tbody = document.querySelector('#hexTable tbody');
   tbody.innerHTML = STATE.hexes.map(h=>{
     const c = h.construction;
@@ -1120,7 +1508,7 @@ function renderConstrucao(){
   siteHexSel.innerHTML = buildable.map(h=>`<option value="${h.col},${h.row}">(${h.col},${h.row}) ${TERRAIN_LABEL[h.terrain]} — pop ${fmt(h.population)} ${h.site?'· já tem '+SITE_LABEL[h.site.type]:''}</option>`).join('');
   const siteTypeSel = document.getElementById('siteType');
   const canPort = !(STATE.race==='Orc'||STATE.race==='Dwarf');
-  siteTypeSel.innerHTML = Object.keys(SITE_LABEL).filter(k=>k!=='port'||canPort).map(k=>`<option value="${k}">${SITE_LABEL[k]}</option>`).join('');
+  siteTypeSel.innerHTML = SITE_LABEL_BUILDABLE_KEYS.filter(k=>k!=='port'||canPort).map(k=>`<option value="${k}">${SITE_LABEL[k]}</option>`).join('');
 
   document.getElementById('siteCalcBtn').onclick = ()=>{
     const el = document.getElementById('siteResult');
@@ -1128,20 +1516,20 @@ function renderConstrucao(){
     const [col,row] = siteHexSel.value.split(',').map(Number);
     const h = STATE.hexes.find(x=>x.col==col&&x.row==row);
     const type = siteTypeSel.value;
-    if(!siteEligible(type, h.terrain, STATE.race)){
-      const why = (type==='port' && (STATE.race==='Orc'||STATE.race==='Dwarf')) ? `Reinos ${RACE_LABEL_PT[STATE.race]} nunca podem construir portos.` : `${SITE_LABEL[type]} não pode ser construída em ${TERRAIN_LABEL[h.terrain]}.`;
+    if(!siteEligible(type, h.terrain, STATE.race, h.construction&&h.construction.race)){
+      const why = (type==='port' && (STATE.race==='Orc'||STATE.race==='Dwarf')) ? `Reinos ${RACE_LABEL_PT[STATE.race]} nunca podem construir portos.` : (type==='port' && h.terrain==='forest' && STATE.race==='Elf') ? `Este hexágono de floresta não tem uma construção Élfica — só floresta sob construção FLF pode ter porto (regra desde 2026-09-24).` : `${SITE_LABEL[type]} não pode ser construída em ${TERRAIN_LABEL[h.terrain]}.`;
       el.innerHTML = `<p class="bad">✗ ${why}</p>`; return;
     }
     if(h.site){ el.innerHTML = `<p class="bad">✗ Este hexágono já tem um local (${SITE_LABEL[h.site.type]}). Só um local por hexágono.</p>`; return; }
     let html = `<p><b>${SITE_LABEL[type]}</b> em (${col},${row}) — custo ${fmt(SITE_COSTS[type])}g`;
     if(type==='mine'){
       const chance = C_MINE_FIND_CHANCE[h.terrain];
-      html += `, ${Math.round(chance*100)}% de hipótese de sucesso (ouro gasto mesmo se falhar). Nível máximo neste terreno: ${C_MINE_MAX_LEVEL[h.terrain]}.`;
+      html += `, ${Math.round(chance*100)}% de hipótese de sucesso (ouro gasto mesmo se falhar). Nível máximo neste terreno: ${mineMaxLevelFor(h.terrain, STATE.race)}${(C_MINE_MAX_LEVEL[h.terrain]>=3 && STATE.race!=='Dwarf')?' (o nível 3 é só para Anões em montanha)':''}.`;
       html += `</p><p class="muted">Rendimento de nível 1, se encontrada: ${mineYield(h.population,1)} ferro/turno.</p>`;
     } else {
       html += `, 100% de sucesso.</p>`;
       if(type==='farm'){ const y=farmYield(h.population,1); html+=`<p class="muted">Rendimento Nv.1: ${y.min}–${y.max} comida/turno (garantido ≥${y.min}).</p>`; }
-      if(type==='port'){ const y=portYield(h.population,1); html+=`<p class="muted">Rendimento Nv.1: ${y.gold}g garantido + 0–${y.foodMax} comida/turno.</p><p class="warn small">⚠ Confirma que este hexágono está adjacente ao mar — a ferramenta não verifica isso automaticamente.${h.terrain==='forest'?' (Exceção élfica: porto em floresta costeira.)':''}</p>`; }
+      if(type==='port'){ const y=portYield(h.population,1); const mult=hypotheticalPortBracket(STATE.hexes,y.gold); const bracketNote = mult<1 ? ` <span class="warn">(entraria no escalão de ${Math.round(mult*100)}% — já tens portos maiores; §3.6.3)</span>` : ''; html+=`<p class="muted">Rendimento Nv.1: ${fmt(floor(y.gold*mult))}g garantido${mult<1?` (${y.gold}g antes do escalão)`:''} + 0–${fmt(floor(y.foodMax*mult))} comida/turno.${bracketNote}</p><p class="warn small">⚠ Confirma que este hexágono está adjacente ao mar — a ferramenta não verifica isso automaticamente.${h.terrain==='forest'?' (Exceção élfica: porto em floresta costeira, só sob construção Élfica.)':''}</p>`; }
       if(type==='lumbermill'){ html+=`<p class="muted">Rendimento Nv.1: ${lumberYield(h.population,1)} madeira/turno.</p>`; }
       if(type==='quarry'){ html+=`<p class="muted">Rendimento Nv.1: ${quarryYield(h.population,1,h.terrain)} pedra/turno.</p>`; }
     }
@@ -1239,6 +1627,7 @@ function renderRecrutamento(){
       <div class="stat"><div class="v">${fmt(upkeepGold)}g/turno</div><div class="l">Manutenção contínua</div></div>
       ${overCap?'<p class="bad">✗ Excede o limite de recrutamento deste hexágono este turno (5% da população).</p>':''}
       ${overGold?'<p class="bad">✗ Não tens ouro suficiente.</p>':''}
+      <p class="small muted">O recrutamento é pago na Pré-Fase 2b, <b>antes do rendimento</b>, com a tesouraria que o relatório mostra; a manutenção e a comida destes recrutas já contam neste mesmo turno (Fase 2). Limite por hexágono: <b>5%</b> da população se for teu, <b>1%</b> se for de um aliado. Tropas de outros povos: no máximo <b>20%</b> do exército, máquinas de cerco incluídas.</p>
     `;
   }
   updateCap(); updateRecruitTotals();
@@ -1247,8 +1636,8 @@ function renderRecrutamento(){
 }
 
 function goldEqCost(cost){
-  // G-EQ (§5.5.4): ouro + ferro×16 + cavalos×20 + madeira×5 — comida NÃO entra.
-  return (cost.gold||0) + (cost.iron||0)*16 + (cost.horses||0)*20 + (cost.wood||0)*5;
+  // G-EQ (§5.5.4, manual v747): ouro + ferro×12 + cavalos×20 + madeira×5 — comida NÃO entra.
+  return (cost.gold||0) + (cost.iron||0)*12 + (cost.horses||0)*20 + (cost.wood||0)*5;
 }
 function deathFactor(gEq, xpMult){ return Math.max(0.3, Math.min(1.0, 1.0 - gEq*(1+(xpMult||0))/1100)); }
 
@@ -1305,10 +1694,12 @@ function renderPersonagens(){
     </div>
   `).join('') || '<p class="muted">Sem personagens na corte.</p>';
 
-  document.getElementById('candList').innerHTML = (STATE.candidate_pool||[]).map(c=>`
+  const candidates = STATE.candidate_pool||[];
+  const candSuggestions = suggestAssignmentsJoint(candidates);
+  document.getElementById('candList').innerHTML = candidates.map((c,i)=>`
     <div class="recommend">
       <b>${c.portrait||'🧔'}</b> Militar ${c.military} · Economia ${c.economics} · Gestão ${c.management} · Política ${c.politics}
-      ${suggestAssignment(c)}
+      ${candSuggestions[i]}
     </div>
   `).join('') || '<p class="muted">Sem candidatos.</p>';
 }
@@ -1317,6 +1708,32 @@ function suggestAssignment(c){
   const best = Object.entries(stats).sort((a,b)=>b[1]-a[1])[0];
   const map = {Militar:'Comandante de Exército', Economia:'Tesoureiro', Gestão:'Mestre de Quintas/Minas/Portos/etc.', Política:'Mestre dos Espiões'};
   return `<br><span class="muted">Sugestão: ${map[best[0]]} (melhor estatística: ${best[0]} ${best[1]})</span>`;
+}
+// Sugestão CONJUNTA para os candidatos: cada cargo só é sugerido a um deles — quem tiver o valor absoluto
+// mais alto nessa estatística entre todos os candidatos, não simplesmente quem tem essa estatística como a sua própria mais alta.
+function suggestAssignmentsJoint(candidates){
+  const roleMap = {Militar:'Comandante de Exército', Economia:'Tesoureiro', Gestão:'Mestre de Quintas/Minas/Portos/etc.', Política:'Mestre dos Espiões'};
+  const entries = [];
+  candidates.forEach((c,ci)=>{
+    const stats = {Militar:c.military, Economia:c.economics, Gestão:c.management, Política:c.politics};
+    Object.entries(stats).forEach(([stat,val])=>entries.push({ci,stat,val}));
+  });
+  entries.sort((a,b)=>b.val-a.val);
+  const assignedCand=new Set(), assignedRole=new Set();
+  const result = new Array(candidates.length).fill(null);
+  entries.forEach(e=>{
+    if(assignedCand.has(e.ci) || assignedRole.has(e.stat)) return;
+    assignedCand.add(e.ci); assignedRole.add(e.stat);
+    result[e.ci] = {stat:e.stat, val:e.val};
+  });
+  // Mais candidatos do que cargos (só há 4): os que sobram ficam com a própria melhor estatística, mesmo repetida
+  candidates.forEach((c,ci)=>{
+    if(result[ci]) return;
+    const stats = {Militar:c.military, Economia:c.economics, Gestão:c.management, Política:c.politics};
+    const best = Object.entries(stats).sort((a,b)=>b[1]-a[1])[0];
+    result[ci] = {stat:best[0], val:best[1]};
+  });
+  return result.map(r=>`<br><span class="muted">Sugestão: ${roleMap[r.stat]} (melhor estatística: ${r.stat} ${r.val})</span>`);
 }
 
 /* ============================== RENDER: IMPOSTOS ============================== */
@@ -1329,22 +1746,22 @@ function renderImpostos(){
     const pen = taxPenaltyPct(STATE.opinion);
     const net = Math.max(0, raw-floor(raw*pen/100));
     const opDelta = taxOpinionDelta(rate);
-    const cls = rate===STATE.taxRate?'style="background:rgba(212,169,74,0.1);"':'';
+    const cls = rate===STATE.taxRate?'style="background:rgba(255,255,255,0.07);"':'';
     rows += `<tr ${cls}><td>${rate}%</td><td>${fmt(raw)}g</td><td>${pen}%</td><td>${fmt(net)}g</td><td class="${opDelta>=0?'good':'bad'}">${opDelta>=0?'+':''}${opDelta}</td></tr>`;
   }
   tbody.innerHTML = rows;
 }
 
 /* ============================== RENDER: PLANO DE CAMPANHA ============================== */
-function planStorageKey(){ return 'trevasxxi_plan_'+(STATE.kingdom_id||'default'); }
-function loadPlanChecks(){
-  try{ return JSON.parse(localStorage.getItem(planStorageKey())||'{}'); }catch(e){ return {}; }
+function planStorageKey(kid){ return 'trevasxxi_plan_'+(kid||STATE.kingdom_id||'default'); }
+function loadPlanChecks(kid){
+  try{ return JSON.parse(localStorage.getItem(planStorageKey(kid))||'{}'); }catch(e){ return {}; }
 }
-function savePlanCheck(id, val){
+function savePlanCheck(id, val, kid){
   try{
-    const data = loadPlanChecks();
+    const data = loadPlanChecks(kid);
     data[id]=val;
-    localStorage.setItem(planStorageKey(), JSON.stringify(data));
+    localStorage.setItem(planStorageKey(kid), JSON.stringify(data));
   }catch(e){ /* localStorage indisponível — segue sem gravar */ }
 }
 function loadPlanNotes(){
@@ -1352,6 +1769,17 @@ function loadPlanNotes(){
 }
 function savePlanNotes(text){
   try{ localStorage.setItem(planStorageKey()+'_notes', text); }catch(e){}
+}
+
+/* ---- Cargos de personagens (§2.9.7, manual v747) ---- */
+// Tesoureiro: Economia × 0,2% SÓ sobre o imposto (portos são do Mestre dos Portos). Mestre dos Cavalos: Gestão × 0,02 PONTOS PERCENTUAIS na criação do rebanho.
+function charByAssign(key){ return (STATE.characters||[]).find(c=>!c.dead && String(c.assignment||'').toLowerCase()===String(key).toLowerCase()); }
+function masterBonus(key, base, stat){ const c=charByAssign(key); return c ? floor(base*(c[stat]||0)*0.2/100) : 0; }
+function horseMasterPoints(){ const c=charByAssign('Horses'); return c ? (c.management||0)*0.02 : 0; }
+// Nível máximo de uma mina (§2.11.2): Lv2 só montanha/colina/deserto; Lv3 só Anões em montanha
+function mineMaxLevelFor(terrain, race){
+  const base = C_MINE_MAX_LEVEL[terrain]||1;
+  return (base>=3 && race!=='Dwarf') ? 2 : base;
 }
 
 /* ---- Simulação turno-a-turno: crescimento, rendimento, manutenção e recrutamento sustentável ---- */
@@ -1380,7 +1808,48 @@ function simulateCampaign(nTurns){
     const turnNum = (STATE.turn||0)+t;
     const actions = [];
 
-    // 1. Crescimento populacional (§2.9.1): máx(1, arred(2%×teto)) por hexágono construído
+    // ORDEM REAL DO TURNO (Turn_processing.xlsx / §2.4): Pré-Fase 2b Recrutamento → Fase 1 Crescimento + Rendimento →
+    // Fase 2 Manutenção e Fome → Fase 3 Construção. O recrutamento é pago com a tesouraria do FECHO DO TURNO ANTERIOR.
+
+    // A. Pré-Fase 2b — Recrutamento (§2.6a): população antes do crescimento deste turno; só o ouro e materiais que já tens
+    const rawCapSoldiers = hexes.filter(h=>h.construction&&h.population>0).reduce((s,h)=>s+Math.max(1,floor(h.population*0.05)),0);
+    const capSoldiers = Math.round(rawCapSoldiers * personalityParam('recruitZeal', 1.0));
+    // estimativa do rendimento de comida deste turno (pré-crescimento — ligeiramente conservadora) para o orçamento sustentável de comida
+    let foodIncomeEstimate = 0;
+    hexes.forEach(h=>{
+      if(h.terrain==='plains' && h.construction && !h.site) foodIncomeEstimate+=1;
+      if(h.site && h.site.type==='farm') foodIncomeEstimate += farmYield(h.population,h.site.size||1).min;
+    });
+    let upkeepFoodExisting=0;
+    combatUnits.forEach(u=>{ upkeepFoodExisting += (standing[u.id]||0)*foodPerHead(u); });
+    const foodUpkeepBudget = Math.max(0, RESERVE_RATIO*foodIncomeEstimate - upkeepFoodExisting);
+    // estimativa conservadora do ouro que entra este turno (imposto líquido pré-crescimento) — evita recrutar a ponto de a manutenção ficar a descoberto
+    const popPre = hexes.reduce((s,h)=>s+(h.population||0),0);
+    const rawTaxPre = floor(popPre*taxRate/100);
+    const goldIncomeEstimate = Math.max(0, rawTaxPre-floor(rawTaxPre*taxPenaltyPct(opinion)/100));
+    let upkeepGoldCommitted = 0;
+    combatUnits.forEach(u=>{ upkeepGoldCommitted += (standing[u.id]||0)*(u.upkeep.gold||0); });
+    let qtyCheap=0, qtyElite=0, foodUpkeepUsed=0;
+    const capCheap = Math.round(capSoldiers*0.7), capElite = capSoldiers-capCheap;
+    const recruitOne = (unit)=>{
+      const c=unit.cost, fph=foodPerHead(unit);
+      if((c.gold||0)>resources.gold) return false;
+      if((c.food||0)>resources.food) return false;
+      if((c.wood||0)>resources.wood) return false;
+      if((c.iron||0)>resources.iron) return false;
+      if((c.horses||0)>resources.horses) return false;
+      if(foodUpkeepUsed+fph>foodUpkeepBudget) return false;
+      if(resources.gold-(c.gold||0)+goldIncomeEstimate < upkeepGoldCommitted+(unit.upkeep.gold||0)) return false;
+      upkeepGoldCommitted += (unit.upkeep.gold||0);
+      resources.gold-=(c.gold||0); resources.food-=(c.food||0); resources.wood-=(c.wood||0); resources.iron-=(c.iron||0); resources.horses-=(c.horses||0);
+      foodUpkeepUsed+=fph; return true;
+    };
+    for(let i=0;i<capCheap;i++){ if(!recruitOne(cheapUnit)) break; qtyCheap++; }
+    for(let i=0;i<capElite;i++){ if(!recruitOne(eliteUnit)) break; qtyElite++; }
+    standing[cheapUnit.id] = (standing[cheapUnit.id]||0)+qtyCheap;
+    standing[eliteUnit.id] = (standing[eliteUnit.id]||0)+qtyElite;
+
+    // B. Fase 1 — Crescimento populacional (§2.9.1): máx(1, arred(2%×teto)) por hexágono construído
     hexes.forEach(h=>{
       if(!h.construction) return;
       const info = getLevelInfo(h.construction.race, h.construction.level);
@@ -1388,36 +1857,51 @@ function simulateCampaign(nTurns){
       if(h.population<cap){ h.population = Math.min(cap, h.population + Math.max(1, Math.round(0.02*cap))); }
     });
 
-    // 2. Rendimento (usa sempre o piso garantido, nunca o teto) — locais construídos ATÉ ao turno anterior
+    // B2. Fase 1 — Rendimento (usa sempre o valor garantido, nunca o máximo) — locais construídos ATÉ ao turno anterior
     const pop = hexes.reduce((s,h)=>s+(h.population||0),0);
     const rawTax = floor(pop*taxRate/100);
     const pen = taxPenaltyPct(opinion);
     const netTax = Math.max(0, rawTax-floor(rawTax*pen/100));
     let farmFood=0, terrainFood=0, portGold=0, mineIron=0, lumberWood=0, quarryStone=0;
+    const portBracketMap = getPortBracketMap(hexes);
     hexes.forEach(h=>{
       if(h.terrain==='plains' && h.construction && !h.site) terrainFood+=1;
       if(h.site){
         const lv=h.site.size||1;
         if(h.site.type==='farm') farmFood += farmYield(h.population,lv).min;
-        if(h.site.type==='port') portGold += portYield(h.population,lv).gold;
+        if(h.site.type==='port'){ const mult=portBracketMap[`${h.col},${h.row}`]||1; portGold += floor(portYield(h.population,lv).gold*mult); }
         if(h.site.type==='mine') mineIron += mineYield(h.population,lv);
         if(h.site.type==='lumbermill') lumberWood += lumberYield(h.population,lv);
         if(h.site.type==='quarry') quarryStone += quarryYield(h.population,lv,h.terrain);
       }
     });
     let goldIncome = netTax+portGold;
-    if(treasurerAssigned && treasurer) goldIncome += floor(goldIncome*treasurer.economics*0.2/100);
+    if(treasurerAssigned && treasurer) goldIncome += floor(netTax*treasurer.economics*0.2/100); // §2.9.7: só sobre o imposto
     const foodIncomeThisTurn = farmFood+terrainFood;
     resources.gold += goldIncome; resources.food += foodIncomeThisTurn;
     resources.iron += mineIron; resources.wood += lumberWood; resources.stone += quarryStone;
 
-    // 3. Ações grátis de arranque (só no 1º turno da projeção)
+    // B3. Ações grátis de arranque (só no 1º turno da projeção) — o imposto e o cargo só valem a partir do turno seguinte
     if(t===1){
       if(!treasurerAssigned && treasurer){ treasurerAssigned=true; actions.push(`Atribuir ${treasurer.name} como Tesoureiro`); }
       if(taxRate<6){ taxRate=Math.min(10,taxRate+1); actions.push(`Subir imposto de ${STATE.taxRate}% para ${taxRate}%`); }
     }
 
-    // 4. Reinvestir excedente em mais locais de produção garantidos (mesma prioridade do Advisor) — ritmo ajustado pela Personalidade
+    // C. Fase 2 — Manutenção (ouro + ferro) e comida de TODAS as tropas em pé, incluindo os recrutas deste turno
+    let upkeepGold=0, upkeepIron=0, foodConsumed=0;
+    combatUnits.forEach(u=>{
+      const c = standing[u.id]||0;
+      upkeepGold += (u.upkeep.gold||0)*c; upkeepIron += (u.upkeep.iron||0)*c;
+      foodConsumed += c*foodPerHead(u);
+    });
+    resources.gold -= upkeepGold; resources.iron -= upkeepIron; resources.food -= foodConsumed;
+    const hungry = resources.food<0;
+    if(hungry) resources.food = 0; // a fome já é assinalada como aviso; não simula a perda de tropas em detalhe
+    const goldShort = resources.gold<0; // défice de ouro → deserção no jogo real
+    if(goldShort) resources.gold = 0;
+    if(resources.iron<0) resources.iron = 0;
+
+    // D. Fase 3 — Construção: reinvestir o que sobra depois da manutenção em mais locais de produção garantidos — ritmo ajustado pela Personalidade
     const buildsCap = Math.round(personalityParam('buildsPerTurn', 2));
     let buildsThisTurn=0;
     for(const type of SITE_PRIORITY){
@@ -1425,64 +1909,12 @@ function simulateCampaign(nTurns){
       if(type==='port' && !canPort) continue;
       const cost = SITE_COSTS[type];
       if(resources.gold<cost) continue;
-      const candidate = hexes.find(h=>h.construction && !h.site && h.population>0 && siteEligible(type,h.terrain,STATE.race) && (type!=='port'||h._seaAdjacentHint));
+      const candidate = hexes.find(h=>h.construction && !h.site && h.population>0 && siteEligible(type,h.terrain,STATE.race,h.construction.race) && (type!=='port'||h._seaAdjacentHint));
       if(candidate){
         resources.gold-=cost; candidate.site={type,size:1}; buildsThisTurn++;
         actions.push(`Construir ${SITE_LABEL[type]} em (${candidate.col},${candidate.row}) — −${fmt(cost)}g`);
       }
     }
-
-    // 5. Manutenção das tropas já em pé (ouro + ferro) — antes de recrutar mais
-    let upkeepGold=0, upkeepIron=0, upkeepFoodExisting=0;
-    combatUnits.forEach(u=>{
-      const c = standing[u.id]||0;
-      upkeepGold += (u.upkeep.gold||0)*c; upkeepIron += (u.upkeep.iron||0)*c;
-      upkeepFoodExisting += c*foodPerHead(u);
-    });
-    resources.gold -= upkeepGold; resources.iron -= upkeepIron;
-
-    // 6. Consumo de comida das tropas já em pé (§2.10.4) — deduzido do stock ANTES de recrutar mais
-    resources.food -= upkeepFoodExisting;
-    const hungry = resources.food<0;
-    if(hungry) resources.food = 0; // a fome já é assinalada como aviso; não simula a perda de tropas em detalhe
-
-    // 7. Teto de recrutamento deste turno (§2.6, 5% da população, por hexágono, somado) — escalado pelo zelo de recrutamento da Personalidade
-    const rawCapSoldiers = hexes.filter(h=>h.construction&&h.population>0).reduce((s,h)=>s+Math.max(1,floor(h.population*0.05)),0);
-    const capSoldiers = Math.round(rawCapSoldiers * personalityParam('recruitZeal', 1.0));
-
-    // 8. Orçamento de comida sustentável: não deixar a manutenção total passar de 85% do rendimento de comida deste turno
-    const foodUpkeepBudget = Math.max(0, RESERVE_RATIO*foodIncomeThisTurn - upkeepFoodExisting);
-
-    // 9. Alocar recrutas: 70% do teto para a unidade barata, 30% para a unidade de elite — travado por ouro, comida, madeira, ferro, cavalos
-    let qtyCheap=0, qtyElite=0;
-    let goldBudget = resources.gold;
-    const capCheap = Math.round(capSoldiers*0.7), capElite = capSoldiers-capCheap;
-    let foodUpkeepUsed=0;
-    for(let i=0;i<capCheap;i++){
-      const c=cheapUnit.cost, fph=foodPerHead(cheapUnit);
-      if((c.gold||0)>goldBudget) break;
-      if((c.food||0)>resources.food) break;
-      if((c.wood||0)>resources.wood) break;
-      if((c.iron||0)>resources.iron) break;
-      if((c.horses||0)>resources.horses) break;
-      if(foodUpkeepUsed+fph>foodUpkeepBudget) break;
-      goldBudget-=(c.gold||0); resources.food-=(c.food||0); resources.wood-=(c.wood||0); resources.iron-=(c.iron||0); resources.horses-=(c.horses||0);
-      foodUpkeepUsed+=fph; qtyCheap++;
-    }
-    for(let i=0;i<capElite;i++){
-      const c=eliteUnit.cost, fph=foodPerHead(eliteUnit);
-      if((c.gold||0)>goldBudget) break;
-      if((c.food||0)>resources.food) break;
-      if((c.wood||0)>resources.wood) break;
-      if((c.iron||0)>resources.iron) break;
-      if((c.horses||0)>resources.horses) break;
-      if(foodUpkeepUsed+fph>foodUpkeepBudget) break;
-      goldBudget-=(c.gold||0); resources.food-=(c.food||0); resources.wood-=(c.wood||0); resources.iron-=(c.iron||0); resources.horses-=(c.horses||0);
-      foodUpkeepUsed+=fph; qtyElite++;
-    }
-    resources.gold = goldBudget;
-    standing[cheapUnit.id] = (standing[cheapUnit.id]||0)+qtyCheap;
-    standing[eliteUnit.id] = (standing[eliteUnit.id]||0)+qtyElite;
 
     const standingTotal = Object.values(standing).reduce((a,b)=>a+b,0);
     results.push({
@@ -1490,8 +1922,8 @@ function simulateCampaign(nTurns){
       recruits:[{name:cheapUnit.name,qty:qtyCheap},{name:eliteUnit.name,qty:qtyElite}].filter(r=>r.qty>0),
       capSoldiers, standingTotal,
       goldEnd:Math.round(resources.gold), foodEnd:Math.round(resources.food),
-      foodIncomeThisTurn:Math.round(foodIncomeThisTurn), foodUpkeepTotal:Math.round(upkeepFoodExisting+foodUpkeepUsed),
-      hungry,
+      foodIncomeThisTurn:Math.round(foodIncomeThisTurn), foodUpkeepTotal:Math.round(foodConsumed),
+      hungry, goldShort,
     });
   }
   return results;
@@ -1570,7 +2002,9 @@ function renderPlano(){
     const isCurrent = phase.id===curPhase;
     const rows = phase.milestones.map(m=>{
       const autoVal = m.auto ? !!m.auto(STATE) : null;
-      const checked = m.auto ? autoVal : !!checks[m.id];
+      // Um marco "auto" fica ✅ se o relatório confirmar OU se já tiver sido marcado a partir de um
+      // ficheiro de ordens (as tuas ordens de um turno só se confirmam no relatório do turno seguinte).
+      const checked = m.auto ? (autoVal || !!checks[m.id]) : !!checks[m.id];
       const icon = checked ? '✅' : '⬜';
       const interactive = m.auto ? '' : `data-mid="${m.id}" class="planCheckbox" style="cursor:pointer;"`;
       const autoTag = m.auto ? '<span class="pill" style="margin-left:6px;">auto</span>' : '';
@@ -1644,10 +2078,11 @@ function buildAdvisorCandidates(){
   const rawTax = floor(pop*taxRate/100);
   const netTax = Math.max(0, rawTax-floor(rawTax*pen/100));
   let portGoldTotal=0, farmFoodMin=0, portFoodMax0=0, mineIronTotal=0, lumberWoodTotal=0, quarryStoneTotal=0;
+  const advisorPortBracketMap = getPortBracketMap(STATE.hexes);
   STATE.hexes.forEach(h=>{
     if(!h.site) return;
     const lv=h.site.size||1;
-    if(h.site.type==='port'){ const y=portYield(h.population,lv); portGoldTotal+=y.gold; }
+    if(h.site.type==='port'){ const y=portYield(h.population,lv); const mult=advisorPortBracketMap[`${h.col},${h.row}`]||1; portGoldTotal+=floor(y.gold*mult); }
     if(h.site.type==='farm'){ const y=farmYield(h.population,lv); farmFoodMin+=y.min; }
     if(h.site.type==='mine'){ mineIronTotal += mineYield(h.population,lv); }
     if(h.site.type==='lumbermill'){ lumberWoodTotal += lumberYield(h.population,lv); }
@@ -1657,15 +2092,20 @@ function buildAdvisorCandidates(){
 
   (STATE.characters||[]).filter(c=>!c.dead).forEach(c=>{
     const options=[];
-    options.push({role:'Tesoureiro', statName:'Economia', stat:c.economics, val: floor(baseGold*c.economics*0.2/100), unit:'g/turno'});
+    options.push({role:'Tesoureiro', statName:'Economia', stat:c.economics, val: floor(netTax*c.economics*0.2/100), unit:'g/turno'}); // §2.9.7: só sobre o imposto
     if(farmFoodMin>0 || portFoodMax0>0) options.push({role:'Mestre de Quintas', statName:'Gestão', stat:c.management, val: floor(farmFoodMin*c.management*0.2/100), unit:'comida/turno'});
     if(portGoldTotal>0) options.push({role:'Mestre dos Portos', statName:'Gestão', stat:c.management, val: floor(portGoldTotal*c.management*0.2/100), unit:'g/turno'});
     if(mineIronTotal>0) options.push({role:'Mestre de Minas', statName:'Gestão', stat:c.management, val: floor(mineIronTotal*c.management*0.2/100), unit:'ferro/turno'});
     if(lumberWoodTotal>0) options.push({role:'Mestre das Serrarias', statName:'Gestão', stat:c.management, val: floor(lumberWoodTotal*c.management*0.2/100), unit:'madeira/turno'});
     if(quarryStoneTotal>0) options.push({role:'Mestre das Pedreiras', statName:'Gestão', stat:c.management, val: floor(quarryStoneTotal*c.management*0.2/100), unit:'pedra/turno'});
+    const curHorsesAdv = STATE.resources.horses||0;
+    if(curHorsesAdv>=2){
+      const extra = Math.ceil(curHorsesAdv*(2+c.management*0.02)/100) - Math.ceil(curHorsesAdv*2/100);
+      if(extra>0) options.push({role:'Mestre dos Cavalos', statName:'Gestão', stat:c.management, val:extra, unit:'cavalos/turno'});
+    }
     // gold-equiv de cada opção
     options.forEach(o=>{
-      let gv = o.unit==='g/turno'?o.val: o.unit==='comida/turno'?o.val*sellPrice('food') : o.unit==='ferro/turno'?o.val*sellPrice('iron') : o.unit==='madeira/turno'?o.val*sellPrice('wood') : o.val*sellPrice('stone');
+      let gv = o.unit==='g/turno'?o.val: o.unit==='comida/turno'?o.val*sellPrice('food') : o.unit==='ferro/turno'?o.val*sellPrice('iron') : o.unit==='madeira/turno'?o.val*sellPrice('wood') : o.unit==='cavalos/turno'?o.val*sellPrice('horses') : o.val*sellPrice('stone');
       o.gv=gv;
     });
     options.sort((a,b)=>b.gv-a.gv);
@@ -1677,7 +2117,7 @@ function buildAdvisorCandidates(){
         valuePerTurn: best.gv,
         valueLabel: `+${fmt(best.val)} ${best.unit}`,
         category:'Personagens',
-        detail:`${c.name} tem a estatística ${best.statName} mais rentável (${best.stat}) para este papel neste momento. Bónus = ${best.statName.toLowerCase()} × 0,2% aplicado à base relevante — sem qualquer custo e em vigor já no próximo turno.`
+        detail:`${c.name} tem a estatística ${best.statName} mais rentável (${best.stat}) para este papel neste momento. Bónus = ${best.statName.toLowerCase()} × 0,2% aplicado à base relevante (o Tesoureiro só sobre o imposto; os portos são do Mestre dos Portos${best.role==='Mestre dos Cavalos'?'; o Mestre dos Cavalos soma Gestão × 0,02 pontos percentuais à criação do rebanho':''}) — sem qualquer custo e em vigor no turno seguinte.`
       });
     }
   });
@@ -1686,8 +2126,8 @@ function buildAdvisorCandidates(){
   const homeBonus = RACE_HOME_BONUS[STATE.race] || {};
   STATE.hexes.forEach(h=>{
     if(!h.construction || h.site || h.population<=0) return;
-    Object.keys(SITE_LABEL).forEach(type=>{
-      if(!siteEligible(type, h.terrain, STATE.race)) return;
+    SITE_LABEL_BUILDABLE_KEYS.forEach(type=>{
+      if(!siteEligible(type, h.terrain, STATE.race, h.construction.race)) return;
       if(type==='port' && !h._seaAdjacentHint) return;
       if(type==='mine'){
         const chance = C_MINE_FIND_CHANCE[h.terrain];
@@ -1708,7 +2148,7 @@ function buildAdvisorCandidates(){
       }
       let gv, valueLabel, detail;
       if(type==='farm'){ const y=farmYield(h.population,1); gv=y.min*sellPrice('food'); valueLabel=`${y.min}–${y.max} comida/turno (garantido ≥${y.min})`; detail='100% de sucesso — a fórmula mais fiável de rendimento por ouro gasto no jogo.'; }
-      if(type==='port'){ const y=portYield(h.population,1); gv=goldEquiv({gold:y.gold,food:y.foodMax/2}); valueLabel=`${fmt(y.gold)}g garantido + 0–${fmt(y.foodMax)} comida/turno`; detail=`100% de sucesso. Ouro é fixo; a comida do porto é lançada de novo a cada turno.${h.terrain==='forest'?' (Exceção élfica: porto em floresta costeira.)':''}`; }
+      if(type==='port'){ const y=portYield(h.population,1); const mult=hypotheticalPortBracket(STATE.hexes,y.gold); const adjGold=floor(y.gold*mult), adjFoodMax=floor(y.foodMax*mult); gv=goldEquiv({gold:adjGold,food:adjFoodMax/2}); valueLabel=`${fmt(adjGold)}g garantido + 0–${fmt(adjFoodMax)} comida/turno${mult<1?` (escalão ${Math.round(mult*100)}%)`:''}`; detail=`100% de sucesso. Ouro é fixo; a comida do porto é lançada de novo a cada turno.${mult<1?` Este seria o teu porto nº${STATE.hexes.filter(hh=>hh.site&&hh.site.type==='port').length+1} — os portos maiores que já tens empurram-no para o escalão de ${Math.round(mult*100)}% (§3.6.3).`:''}${h.terrain==='forest'?' (Exceção élfica: porto em floresta costeira, só sob construção Élfica.)':''}`; }
       if(type==='lumbermill'){ const y=lumberYield(h.population,1); gv=y*sellPrice('wood'); valueLabel=`${fmt(y)} madeira/turno (determinístico)`; detail='100% de sucesso — madeira determinística, essencial para tropas, navios e muralhas.'; }
       if(type==='quarry'){ const y=quarryYield(h.population,1,h.terrain); gv=y*sellPrice('stone'); valueLabel=`${fmt(y)} pedra/turno (determinístico)`; detail='100% de sucesso — pedra para melhorias e reparações de muralha.'; }
       cands.push({
@@ -1836,7 +2276,7 @@ function renderAdvisor(){
 }
 
 function roleKey(role){
-  const map={'Tesoureiro':'Treasury','Mestre de Quintas':'Farms','Mestre dos Portos':'Ports','Mestre de Minas':'Mines','Mestre das Serrarias':'Lumbermills','Mestre das Pedreiras':'Quarries'};
+  const map={'Tesoureiro':'Treasury','Mestre de Quintas':'Farms','Mestre dos Portos':'Ports','Mestre de Minas':'Mines','Mestre das Serrarias':'Lumbermills','Mestre das Pedreiras':'Quarries','Mestre dos Cavalos':'Horses'};
   return map[role]||role;
 }
 
@@ -1922,28 +2362,147 @@ function renderHistorico(){
 
 /* ============================== MASTER RENDER ============================== */
 /* ============================== CALCULADORA DE BATALHA ============================== */
-function goldEqCostFull(cost){ return (cost.gold||0)+(cost.iron||0)*16+(cost.horses||0)*20+(cost.wood||0)*5; }
+function goldEqCostFull(cost){ return (cost.gold||0)+(cost.iron||0)*12+(cost.horses||0)*20+(cost.wood||0)*5; }
 
-function renderArmyTable(tbodyId, units){
-  document.querySelector('#'+tbodyId+' tbody').innerHTML = units.map((u,i)=>`
-    <tr><td>${u.name}${u.mounted?' 🐎':''}</td><td>${u.wp}</td>
-    <td><input type="number" min="0" value="0" data-idx="${i}" class="battleQty_${tbodyId}" style="width:70px;"></td></tr>
-  `).join('');
+/* ============================== COMPOSIÇÃO MULTI-RAÇA (pilhas reutilizadas em Batalha/Cerco/Naval) ============================== */
+const STACK_STATE = {};
+function getStackState(prefix){ if(!STACK_STATE[prefix]) STACK_STATE[prefix]=[]; return STACK_STATE[prefix]; }
+function unitLookup(rosterProvider, race, unitId){ return (rosterProvider[race]||[]).find(u=>u.id===unitId); }
+
+function initStackBuilder(prefix, rosterProvider, defaultRace, unitFilter, customRenderFn){
+  const raceSel = document.getElementById(prefix+'StackRace');
+  const unitSel = document.getElementById(prefix+'StackUnit');
+  if(raceSel.dataset.filled) return;
+  const races = Object.keys(rosterProvider);
+  raceSel.innerHTML = races.map(r=>`<option value="${r}">${RACE_LABEL_PT[r]||r}</option>`).join('');
+  raceSel.value = defaultRace && races.includes(defaultRace) ? defaultRace : races[0];
+  raceSel.dataset.filled='1';
+  const fillUnits = ()=>{
+    const list = (rosterProvider[raceSel.value]||[]).filter(unitFilter||(()=>true));
+    unitSel.innerHTML = list.map(u=>`<option value="${u.id}">${u.name} (WP ${u.wp})</option>`).join('');
+  };
+  raceSel.onchange = fillUnits;
+  fillUnits();
+  const renderFn = customRenderFn || (()=>renderStackTable(prefix, rosterProvider));
+  document.getElementById(prefix+'StackAddBtn').onclick = ()=>{
+    const qty = parseInt(document.getElementById(prefix+'StackQty').value)||0;
+    if(qty<=0) return;
+    const stacks = getStackState(prefix);
+    const race = raceSel.value, unitId = unitSel.value;
+    const existing = stacks.find(s=>s.race===race && s.unitId===unitId);
+    if(existing) existing.qty += qty; else stacks.push({race, unitId, qty});
+    renderFn();
+  };
+}
+
+// Limite de tropas de outros povos (§2.12.1, manual v747): no máximo 20% do exército, máquinas de cerco incluídas.
+// Aviso informativo — a simulação continua a permitir qualquer mistura para estudar cenários.
+function foreignShareHTML(prefix, rosterProvider){
+  const stacks = getStackState(prefix);
+  const byRace = {}; let total=0;
+  stacks.forEach(st=>{ byRace[st.race]=(byRace[st.race]||0)+st.qty; total+=st.qty; });
+  if(!total || Object.keys(byRace).length<2) return '';
+  const ownRace = prefix==='enemy' ? Object.entries(byRace).sort((a,b)=>b[1]-a[1])[0][0] : (STATE.race||Object.keys(byRace)[0]);
+  const foreign = total-(byRace[ownRace]||0);
+  const own = total-foreign;
+  const pct = foreign/total*100;
+  const room = Math.max(0, Math.floor(own/4)-foreign);
+  const over = foreign*5>total;
+  return `<p class="small ${over?'bad':'muted'}" style="margin-top:6px;">Outros povos: ${fmt(foreign)} de ${fmt(total)} (${pct.toFixed(0)}%) · limite 20% (§2.12.1)${over?' — ✗ um exército real não pode ter esta composição (tropas de outros povos ≤ 20%, máquinas incluídas); serve só como cenário.':` — folga para mais ${fmt(room)} tropa(s) de outros povos.`}</p>`;
+}
+function updateForeignWarn(prefix, rosterProvider, tableSel){
+  const table = document.querySelector(tableSel); if(!table) return;
+  const anchor = table.closest('.tbl-wrap') || table;
+  let box = document.getElementById(prefix+'ForeignWarn');
+  if(!box){ box = document.createElement('div'); box.id = prefix+'ForeignWarn'; anchor.insertAdjacentElement('afterend', box); }
+  box.innerHTML = foreignShareHTML(prefix, rosterProvider);
+}
+
+function renderStackTable(prefix, rosterProvider){
+  const stacks = getStackState(prefix);
+  const tbody = document.querySelector('#'+prefix+'ArmyTable tbody') || document.querySelector('#'+prefix+'Table tbody');
+  tbody.innerHTML = stacks.map((s,i)=>{
+    const u = unitLookup(rosterProvider, s.race, s.unitId);
+    if(!u) return '';
+    return `<tr><td>${RACE_LABEL_PT[s.race]||s.race}</td><td>${u.name}${u.mounted?' 🐎':''}</td><td>${u.wp}</td><td>${fmt(s.qty)}</td><td><button type="button" class="act secondary stackRemoveBtn" data-prefix="${prefix}" data-idx="${i}" style="padding:2px 8px;">✕</button></td></tr>`;
+  }).join('') || '<tr><td colspan="5" class="muted small">Sem unidades adicionadas.</td></tr>';
+  tbody.querySelectorAll('.stackRemoveBtn').forEach(btn=>{
+    btn.onclick = ()=>{
+      getStackState(btn.dataset.prefix).splice(parseInt(btn.dataset.idx),1);
+      renderStackTable(btn.dataset.prefix, rosterProvider);
+    };
+  });
+  if(prefix==='own'||prefix==='enemy') updateForeignWarn(prefix, rosterProvider, '#'+prefix+'ArmyTable');
+}
+
+function stackTotals(prefix, rosterProvider){
+  const stacks = getStackState(prefix);
+  let totalWP=0, footWP=0, totalCount=0, gEqWeighted=0;
+  const byRaceMounted = {}; // raça -> WP montado dessa raça, para aplicar a isenção de terreno certa por pilha
+  const byRaceWP = {}; // raça -> WP total, para decidir a raça dominante (bónus de terreno racial)
+  stacks.forEach(s=>{
+    const u = unitLookup(rosterProvider, s.race, s.unitId);
+    if(!u) return;
+    const wp = u.wp*s.qty;
+    totalWP += wp; totalCount += s.qty;
+    byRaceWP[s.race] = (byRaceWP[s.race]||0)+wp;
+    if(u.mounted) byRaceMounted[s.race] = (byRaceMounted[s.race]||0)+wp;
+    else footWP += wp;
+    gEqWeighted += goldEqCostFull(u.cost)*s.qty;
+  });
+  const avgGEq = totalCount>0 ? gEqWeighted/totalCount : 0;
+  let dominantRace=null, bestWP=-1;
+  Object.entries(byRaceWP).forEach(([r,wp])=>{ if(wp>bestWP){dominantRace=r;bestWP=wp;} });
+  return {totalWP, footWP, totalCount, avgGEq, byRaceMounted, dominantRace};
+}
+// WP efetivo de um lado neste terreno: cada pilha montada usa a isenção de cavalaria da SUA PRÓPRIA raça (§3.5.1)
+function effectiveWPForSide(totals, terrain){
+  let eff = totals.footWP;
+  Object.entries(totals.byRaceMounted).forEach(([race,mWP])=>{
+    const scale = ((race==='Nomad'&&terrain==='desert')||(race==='Orc'&&terrain==='forest')) ? 1.0 : (CAV_TERRAIN_SCALE[terrain]||1.0);
+    eff += mWP*scale;
+  });
+  return eff;
+}
+// Preenche pilhas a partir de um exército/frota real do relatório (usado pelos botões "Preencher")
+function prefillStacksFromRoster(prefix, roster, race, rosterProvider){
+  const stacks = getStackState(prefix);
+  (roster||[]).forEach(entry=>{
+    const unitId = entry.unitId || entry.shipId;
+    const u = unitLookup(rosterProvider, race, unitId);
+    if(!u) return;
+    const existing = stacks.find(s=>s.race===race && s.unitId===unitId);
+    if(existing) existing.qty = entry.count||0; else stacks.push({race, unitId, qty:entry.count||0});
+  });
+  renderStackTable(prefix, rosterProvider);
 }
 
 function renderBatalha(){
-  document.getElementById('ownArmyTitle').textContent = `🛡 O Teu Exército (${RACE_LABEL_PT[STATE.race]||STATE.race})`;
-  const ownUnits = getUnits().filter(u=>u.wp>10);
-  renderArmyTable('ownArmyTable', ownUnits);
+  document.getElementById('ownArmyTitle').textContent = `🛡 O Teu Exército (${RACE_LABEL_PT[STATE.race]||STATE.race}) + aliados`;
+  initStackBuilder('own', UNIT_ROSTER_BY_RACE, STATE.race, u=>u.wp>10);
+  initStackBuilder('enemy', UNIT_ROSTER_BY_RACE, Object.keys(UNIT_ROSTER_BY_RACE).find(r=>r!==STATE.race), u=>u.wp>10);
+  renderStackTable('own', UNIT_ROSTER_BY_RACE);
+  renderStackTable('enemy', UNIT_ROSTER_BY_RACE);
 
-  const enemyRaceSel = document.getElementById('enemyRace');
-  if(!enemyRaceSel.dataset.filled){
-    enemyRaceSel.innerHTML = Object.keys(UNIT_ROSTER_BY_RACE).map(r=>`<option value="${r}" ${r===STATE.race?'':''}>${RACE_LABEL_PT[r]||r}</option>`).join('');
-    enemyRaceSel.value = Object.keys(UNIT_ROSTER_BY_RACE).find(r=>r!==STATE.race) || STATE.race;
-    enemyRaceSel.dataset.filled='1';
-    enemyRaceSel.onchange = ()=>renderArmyTable('enemyArmyTable', UNIT_ROSTER_BY_RACE[enemyRaceSel.value].filter(u=>u.wp>10));
+  const armies = STATE.armies||[];
+  const prefillRow = document.getElementById('ownArmyPrefillRow');
+  const noArmiesNote = document.getElementById('ownArmyNoArmiesNote');
+  if(armies.length){
+    prefillRow.style.display='flex'; noArmiesNote.style.display='none';
+    const prefillSel = document.getElementById('ownArmyPrefillSel');
+    prefillSel.innerHTML = armies.map((a,i)=>{
+      const total = (a.units||[]).reduce((s,u)=>s+u.count,0);
+      return `<option value="${i}">Exército ${a.num||i+1} — ${fmt(total)} soldados, ESTADO ${a.status??100}%</option>`;
+    }).join('');
+    document.getElementById('ownArmyPrefillBtn').onclick = ()=>{
+      const a = armies[parseInt(prefillSel.value)];
+      if(!a) return;
+      prefillStacksFromRoster('own', a.units, STATE.race, UNIT_ROSTER_BY_RACE);
+      document.getElementById('ownStatus').value = a.status ?? 100;
+    };
+  } else {
+    prefillRow.style.display='none'; noArmiesNote.style.display='block';
   }
-  renderArmyTable('enemyArmyTable', UNIT_ROSTER_BY_RACE[enemyRaceSel.value].filter(u=>u.wp>10));
 
   const commSel = document.getElementById('ownCommander');
   if(!commSel.dataset.filled){
@@ -1961,31 +2520,14 @@ function renderBatalha(){
   document.getElementById('calcBattleBtn').onclick = computeBattle;
 }
 
-function readArmyFromTable(tbodyId, units){
-  let totalWP=0, mountedWP=0, totalCount=0, gEqWeighted=0;
-  document.querySelectorAll('.battleQty_'+tbodyId).forEach(inp=>{
-    const q = parseInt(inp.value)||0;
-    if(!q) return;
-    const u = units[inp.dataset.idx];
-    totalWP += u.wp*q; totalCount += q;
-    if(u.mounted) mountedWP += u.wp*q;
-    gEqWeighted += goldEqCostFull(u.cost)*q;
-  });
-  const avgGEq = totalCount>0 ? gEqWeighted/totalCount : 0;
-  return {totalWP, mountedWP, footWP: totalWP-mountedWP, totalCount, avgGEq};
-}
-
 function computeBattle(){
-  const ownUnits = getUnits().filter(u=>u.wp>10);
-  const enemyRace = document.getElementById('enemyRace').value;
-  const enemyUnits = UNIT_ROSTER_BY_RACE[enemyRace].filter(u=>u.wp>10);
-  const own = readArmyFromTable('ownArmyTable', ownUnits);
-  const enemy = readArmyFromTable('enemyArmyTable', enemyUnits);
+  const own = stackTotals('own', UNIT_ROSTER_BY_RACE);
+  const enemy = stackTotals('enemy', UNIT_ROSTER_BY_RACE);
   const el = document.getElementById('battleResultCard'); const out = document.getElementById('battleResult');
   document.getElementById('battleResultCard').style.display='block';
 
   if(own.totalCount===0 || enemy.totalCount===0){
-    out.innerHTML = '<p class="bad">Preenche pelo menos uma unidade de cada lado.</p>'; return;
+    out.innerHTML = '<p class="bad">Adiciona pelo menos uma unidade de cada lado.</p>'; return;
   }
 
   const terrain = document.getElementById('battleTerrain').value;
@@ -1998,15 +2540,15 @@ function computeBattle(){
   const ownCmdMult = 1 + ownCmdMil/1000;
   const enemyCmdMult = 1 + enemyCmdMil/1000;
 
-  const ownHome = RACE_HOME_BONUS[STATE.race]||{};
-  const enemyHome = RACE_HOME_BONUS[enemyRace]||{};
+  // Bónus racial de terreno (§3.5): aplicado pela raça DOMINANTE (mais WP) de cada lado — uma
+  // coligação mista usa a raça que pesa mais nesse lado como referência para este bónus.
+  const ownHome = RACE_HOME_BONUS[own.dominantRace]||{};
+  const enemyHome = RACE_HOME_BONUS[enemy.dominantRace]||{};
   const ownTerrainMult = (ownHome.terrain===terrain) ? ownHome.mult : 1.0;
   const enemyTerrainMult = (enemyHome.terrain===terrain) ? enemyHome.mult : 1.0;
 
-  const ownCavScale = (STATE.race==='Nomad' && terrain==='desert') ? 1.0 : (CAV_TERRAIN_SCALE[terrain]||1.0);
-  const enemyCavScale = (enemyRace==='Nomad' && terrain==='desert') ? 1.0 : (CAV_TERRAIN_SCALE[terrain]||1.0);
-  const ownEffWP = own.footWP + own.mountedWP*ownCavScale;
-  const enemyEffWP = enemy.footWP + enemy.mountedWP*enemyCavScale;
+  const ownEffWP = effectiveWPForSide(own, terrain);
+  const enemyEffWP = effectiveWPForSide(enemy, terrain);
 
   const iniciativa = 1.075; // ponto médio de 1,05–1,10, só ataque
   const varMid = 1.0; // ponto médio de 0,90–1,10 — sem variância aplicada (cenário esperado)
@@ -2015,7 +2557,7 @@ function computeBattle(){
   const stanceRaw = document.getElementById(ownIsAttacker?'enemyStance':'ownStance').value; // postura é de quem DEFENDE
   const defStanceMod = stanceRaw==='1.2g' ? 1.2 : parseFloat(stanceRaw);
 
-  let attRoll, defRoll, attSide, defSide, attTerrainMult, defTerrainMult, attCmdMult, defCmdMult, attStatus, defStatus, attWP, defWP;
+  let attRoll, defRoll, attTerrainMult, defTerrainMult, attCmdMult, defCmdMult, attStatus, defStatus, attWP, defWP;
   if(ownIsAttacker){
     attWP=ownEffWP; defWP=enemyEffWP; attTerrainMult=ownTerrainMult; defTerrainMult=enemyTerrainMult;
     attCmdMult=ownCmdMult; defCmdMult=enemyCmdMult; attStatus=ownStatus; defStatus=enemyStatus;
@@ -2033,11 +2575,11 @@ function computeBattle(){
   else { outcome='empate'; ratio=1; }
 
   function lossPctWinner(r){ return 0.10/r; }
+  // No mar (manual v747 §5.9.3): curva de campo até 5:1 (log + piso, teto 60%) e depois rampa linear até perda total em 10:1
   function lossPctLoser(r){
-    if(r<=10) return Math.min(0.60, Math.max(0.12+0.18*Math.log(r), 0.12*r));
-    if(r<=13) return 0.60;
-    if(r>=25) return 1.0;
-    return 0.50+0.50*(r-10)/15;
+    const floored = Math.min(0.60, Math.max(0.12+0.18*Math.log(r), 0.12*r));
+    if(r<=5) return floored;
+    return Math.max(floored, Math.min(1.0, 0.60+0.40*(r-5)/5));
   }
   let attLossPct, defLossPct;
   if(outcome==='atacante'){ attLossPct=lossPctWinner(ratio); defLossPct=lossPctLoser(ratio); }
@@ -2045,13 +2587,16 @@ function computeBattle(){
   else { attLossPct=defLossPct=0.09; } // ponto médio de 6–12%
 
   function deathFactor(gEq){ return Math.max(0.3, Math.min(1.0, 1.0-gEq/1100)); }
-  const ownDF = deathFactor(own.avgGEq), enemyDF = deathFactor(enemy.avgGEq);
+  const ownIsLoser = (outcome==='atacante'&&!ownIsAttacker)||(outcome==='defensor'&&ownIsAttacker)||outcome==='empate';
+  const enemyIsLoser = (outcome==='atacante'&&ownIsAttacker)||(outcome==='defensor'&&!ownIsAttacker)||outcome==='empate';
+  // A armadura dissolve-se com as probabilidades (manual v747 §5.5.3): acima de 10:1 o fator de morte do perdedor sobe para 1,0 em 25:1
+  const dissolve = (df)=> (outcome!=='empate' && ratio>10) ? df+(1-df)*Math.min(1,(ratio-10)/15) : df;
+  const ownDF = ownIsLoser ? dissolve(deathFactor(own.avgGEq)) : deathFactor(own.avgGEq);
+  const enemyDF = enemyIsLoser ? dissolve(deathFactor(enemy.avgGEq)) : deathFactor(enemy.avgGEq);
   let ownLossPct, enemyLossPct;
   if(ownIsAttacker){ ownLossPct=attLossPct; enemyLossPct=defLossPct; } else { ownLossPct=defLossPct; enemyLossPct=attLossPct; }
   let ownLosses = Math.round(ownLossPct*own.totalCount*ownDF);
   let enemyLosses = Math.round(enemyLossPct*enemy.totalCount*enemyDF);
-  const ownIsLoser = (outcome==='atacante'&&!ownIsAttacker)||(outcome==='defensor'&&ownIsAttacker)||outcome==='empate';
-  const enemyIsLoser = (outcome==='atacante'&&ownIsAttacker)||(outcome==='defensor'&&!ownIsAttacker)||outcome==='empate';
   // "cada exército do lado perdedor... perde sempre pelo menos um soldado; vencedores E EMPATES não são afetados" (§5.5.4)
   if(outcome!=='empate'){
     if(ownIsLoser) ownLosses = Math.max(1, ownLosses);
@@ -2073,48 +2618,61 @@ function computeBattle(){
     <div class="hr"></div>
     <div class="grid cols2">
       <div>
-        <h3>O Teu Lado</h3>
-        <p>WP bruto: ${fmt(own.totalWP)} (${fmt(own.mountedWP)} montado) · WP efetivo neste terreno: ${fmt(ownEffWP)}</p>
+        <h3>O Teu Lado${own.dominantRace?` (dominante: ${RACE_LABEL_PT[own.dominantRace]})`:''}</h3>
+        <p>WP bruto: ${fmt(own.totalWP)} · WP efetivo neste terreno: ${fmt(ownEffWP)}</p>
         <p>Baixas esperadas: <b class="${ownIsLoser?'bad':'good'}">${fmt(ownLosses)} de ${fmt(own.totalCount)}</b> (${(ownLossPct*100).toFixed(1)}% nominal × fator morte ${ownDF.toFixed(2)})</p>
         ${ownCmdDeath!==null?`<p class="muted small">Hipótese de morte do comandante: ${(ownCmdDeath*100).toFixed(0)}%</p>`:''}
       </div>
       <div>
-        <h3>Inimigo (${RACE_LABEL_PT[enemyRace]})</h3>
-        <p>WP bruto: ${fmt(enemy.totalWP)} (${fmt(enemy.mountedWP)} montado) · WP efetivo neste terreno: ${fmt(enemyEffWP)}</p>
+        <h3>Inimigo${enemy.dominantRace?` (dominante: ${RACE_LABEL_PT[enemy.dominantRace]})`:''}</h3>
+        <p>WP bruto: ${fmt(enemy.totalWP)} · WP efetivo neste terreno: ${fmt(enemyEffWP)}</p>
         <p>Baixas esperadas: <b class="${enemyIsLoser?'bad':'good'}">${fmt(enemyLosses)} de ${fmt(enemy.totalCount)}</b> (${(enemyLossPct*100).toFixed(1)}% nominal × fator morte ${enemyDF.toFixed(2)})</p>
         ${enemyCmdDeath!==null?`<p class="muted small">Hipótese de morte do comandante: ${(enemyCmdDeath*100).toFixed(0)}%</p>`:''}
       </div>
     </div>
-    <p class="small muted" style="margin-top:8px;">${outcome==='empate' ? 'Nenhum dos lados atinge a margem decisiva de ×1,2 — empate: o atacante recua e ambos os lados sofrem 6–12% de baixas nominais.' : `Vitória decisiva exige atacar > defender×1,2. Aqui: ${fmt(attRoll)} vs ${fmt(defRoll)}×1,2=${fmt(defRoll*1.2)}.`} Cenário sem a variância aleatória de ±10% por lançamento — o resultado real pode oscilar à volta destes números.</p>
+    <p class="small muted" style="margin-top:8px;">${outcome==='empate' ? 'Nenhum dos lados atinge a margem decisiva de ×1,2 — empate: o atacante recua e ambos os lados sofrem 6–12% de baixas nominais.' : `Vitória decisiva exige atacar > defender×1,2. Aqui: ${fmt(attRoll)} vs ${fmt(defRoll)}×1,2=${fmt(defRoll*1.2)}.`} O bónus de terreno racial usa a raça com mais WP em cada lado, não uma média — uma coligação pequena dentro de um exército maior de outra raça não desvia esse bónus. Cenário sem a variância aleatória de ±10% por lançamento.</p>
   `;
 }
 
 /* ============================== CALCULADORA DE CERCO ============================== */
+function renderSiegeStackTable(){
+  const stacks = getStackState('siege');
+  const tbody = document.querySelector('#siegeArmyTable tbody');
+  tbody.innerHTML = stacks.map((s,i)=>{
+    const u = unitLookup(UNIT_ROSTER_BY_RACE, s.race, s.unitId);
+    if(!u) return '';
+    const corpo = u.wp<=10 ? '— (máquina)' : (u.mounted?'2 (montado)':'1');
+    return `<tr><td>${RACE_LABEL_PT[s.race]||s.race}</td><td>${u.name}${u.mounted?' 🐎':''}</td><td>${u.wp}</td><td>${corpo}</td><td>${fmt(s.qty)}</td><td><button type="button" class="act secondary stackRemoveBtn" data-prefix="siege" data-idx="${i}" style="padding:2px 8px;">✕</button></td></tr>`;
+  }).join('') || '<tr><td colspan="6" class="muted small">Sem unidades adicionadas.</td></tr>';
+  tbody.querySelectorAll('.stackRemoveBtn').forEach(btn=>{
+    btn.onclick = ()=>{ getStackState('siege').splice(parseInt(btn.dataset.idx),1); renderSiegeStackTable(); };
+  });
+  updateForeignWarn('siege', UNIT_ROSTER_BY_RACE, '#siegeArmyTable');
+}
+
 function renderCerco(){
-  const units = getUnits(); // inclui máquinas de cerco (contam para WP, não para corpos)
-  document.querySelector('#siegeArmyTable tbody').innerHTML = units.map((u,i)=>`
-    <tr><td>${u.name}${u.mounted?' 🐎':''}</td><td>${u.wp}</td><td>${u.wp<=10?'— (máquina)':(u.mounted?'2 (montado)':'1')}</td>
-    <td><input type="number" min="0" value="0" data-idx="${i}" class="siegeQty" style="width:70px;"></td></tr>
-  `).join('');
+  initStackBuilder('siege', UNIT_ROSTER_BY_RACE, STATE.race, null, renderSiegeStackTable); // inclui máquinas de cerco (contam para WP, não para corpos)
+  renderSiegeStackTable();
   document.getElementById('calcSiegeBtn').onclick = computeSiege;
 }
 
 function computeSiege(){
-  const units = getUnits();
   const pop = parseInt(document.getElementById('siegeTargetPop').value)||0;
   const isSeat = document.getElementById('siegeTargetType').value==='seat';
+  const status = Math.max(0.1, (parseFloat(document.getElementById('siegeStatus').value)||100)/100);
   let totalWP=0, bodies=0, machineCount=0;
-  document.querySelectorAll('.siegeQty').forEach(inp=>{
-    const q=parseInt(inp.value)||0; if(!q) return;
-    const u=units[inp.dataset.idx];
-    totalWP += u.wp*q;
-    if(u.wp<=10) machineCount+=q; else bodies += u.mounted ? q*2 : q;
+  getStackState('siege').forEach(s=>{
+    const u = unitLookup(UNIT_ROSTER_BY_RACE, s.race, s.unitId);
+    if(!u) return;
+    totalWP += u.wp*s.qty;
+    if(u.wp<=10) machineCount+=s.qty; else bodies += u.mounted ? s.qty*2 : s.qty;
   });
+  const effectiveWP = totalWP*status; // §5.8.1 (2026-09-21): armyWP × status > limiar — corpos NÃO escalam
 
   const reqBodies = floor(pop*0.3);
   const reqWP = floor(pop*0.05)*20;
   const bodiesOK = bodies>=reqBodies;
-  const wpOK = totalWP>reqWP;
+  const wpOK = effectiveWP>reqWP;
   const valid = bodiesOK && wpOK;
 
   document.getElementById('siegeResultCard').style.display='block';
@@ -2124,15 +2682,15 @@ function computeSiege(){
     el.innerHTML = `
       <div class="grid cols2">
         <div class="stat"><div class="v ${bodiesOK?'good':'bad'}">${fmt(bodies)} / ${fmt(reqBodies)}</div><div class="l">Corpos (≥30% da população)</div></div>
-        <div class="stat"><div class="v ${wpOK?'good':'bad'}">${fmt(totalWP)} / >${fmt(reqWP)}</div><div class="l">Poder de Guerra bruto</div></div>
+        <div class="stat"><div class="v ${wpOK?'good':'bad'}">${fmt(Math.round(effectiveWP))} / >${fmt(reqWP)}</div><div class="l">Poder de Guerra × ESTADO (${Math.round(status*100)}%)</div></div>
       </div>
-      <p class="bad" style="margin-top:10px;">✗ Cerco Falhado — força demasiado pequena. ${!bodiesOK?`Faltam ${fmt(reqBodies-bodies)} corpos (cavalaria conta a dobrar). `:''}${!wpOK?`Faltam ${fmt(reqWP-totalWP+1)} WP.`:''}</p>
+      <p class="bad" style="margin-top:10px;">✗ Cerco Falhado — força demasiado pequena. ${!bodiesOK?`Faltam ${fmt(reqBodies-bodies)} corpos (cavalaria conta a dobrar). `:''}${!wpOK?`Faltam ${fmt(reqWP-effectiveWP+1)} WP efetivo (sobe o ESTADO ou o WP bruto).`:''}</p>
       <p class="small muted">Podes sempre tentar um Assalto direto em vez de Cerco (§5.6) — qualquer tamanho de exército pode assaltar, mas uma força pequena perde contra muralha + milícia. Usa a Calculadora de Batalha para estimar esse cenário.</p>
     `;
     return;
   }
 
-  const threshold = isSeat ? 4 : 3;
+  const threshold = isSeat ? 5 : 4;
   const turnsToFall = threshold+1;
   const rows=[];
   for(let t=1;t<=turnsToFall;t++){
@@ -2150,7 +2708,7 @@ function computeSiege(){
     </div>
     <p class="good" style="margin-top:10px;">✓ Cerco válido — força mínima cumprida. O Progresso do Cerco soma +1/turno enquanto mantiveres a postura de Cerco acampado às portas.</p>
     <div class="tbl-wrap"><table><thead><tr><th>Turno</th><th>Progresso</th><th>Estado da muralha</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
-    <p class="small muted">Precisas de ${turnsToFall} turnos consecutivos de cerco (o limiar é ${threshold}, o contador tem de ultrapassar estritamente). Se o inimigo tiver um exército não-Guarnição lá dentro, ele sai e luta em campo aberto antes sequer de chegares ao portão — usa a Calculadora de Batalha para esse confronto primeiro. Um exército inimigo que reforce o cerco por fora, ou levantares o cerco tu próprio, zera o progresso.</p>
+    <p class="small muted">Precisas de ${turnsToFall} turnos consecutivos de cerco (o limiar é ${threshold}, o contador tem de ultrapassar estritamente; o turno em que chegas não conta — o primeiro tick é no processamento seguinte). Só um exército em <b>Guarnição</b> fica dentro das muralhas (§5.8.0): qualquer outra postura do defensor fica <b>fora</b>, em campo aberto, e luta contigo na batalha às portas antes de o cerco avançar (sem bónus de fortaleza nem milícia) — usa a Calculadora de Batalha para esse confronto. Depois de o anel fechar, quem está dentro fica sitiado e só pode manter Guarnição ou ordenar um <b>Sally</b> (luta como atacante, a ×1,00). Quem te ataca por fora enquanto cercas (exército de socorro, mesmo vindo do mar) apanha-te em Cerco ×0,85. Só construções com muralha podem ser sitiadas (Orc nível 0–3, Genérico 1–4 e Nómada nível 1 não têm muralha: tomam-se marchando e vencendo quem lá estiver). Levantares o cerco tu próprio zera o progresso.</p>
     ${machineNote}
   `;
 }
@@ -2258,9 +2816,9 @@ function renderAlvos(){
     el.addEventListener('click', ()=>{
       const race = el.dataset.race;
       document.querySelector('#tabnav button[data-tab="batalha"]').click();
-      const sel = document.getElementById('enemyRace');
-      sel.value = race; sel.dataset.filled='1';
-      renderArmyTable('enemyArmyTable', UNIT_ROSTER_BY_RACE[race].filter(u=>u.wp>10));
+      const sel = document.getElementById('enemyStackRace');
+      sel.value = race;
+      sel.dispatchEvent(new Event('change'));
     });
   });
 }
@@ -2275,27 +2833,31 @@ function fullUnitIndex(){
 function renderBalanco(){
   const unitIdx = fullUnitIndex();
 
-  // --- Produção (piso garantido) ---
+  // --- Produção (valor garantido) ---
   const pop = totalPop();
   const rawTax = floor(pop*STATE.taxRate/100);
   const pen = taxPenaltyPct(STATE.opinion);
   const netTax = Math.max(0, rawTax-floor(rawTax*pen/100));
   let farmFood=0, terrainFood=0, portGold=0, mineIron=0, lumberWood=0, quarryStone=0;
+  const balancoPortBracketMap = getPortBracketMap(STATE.hexes);
   STATE.hexes.forEach(h=>{
     if(h.terrain==='plains' && h.construction && !h.site) terrainFood+=1;
     if(h.site){
       const lv=h.site.size||1;
       if(h.site.type==='farm') farmFood += farmYield(h.population,lv).min;
-      if(h.site.type==='port') portGold += portYield(h.population,lv).gold;
+      if(h.site.type==='port'){ const mult=balancoPortBracketMap[`${h.col},${h.row}`]||1; portGold += floor(portYield(h.population,lv).gold*mult); }
       if(h.site.type==='mine') mineIron += mineYield(h.population,lv);
       if(h.site.type==='lumbermill') lumberWood += lumberYield(h.population,lv);
       if(h.site.type==='quarry') quarryStone += quarryYield(h.population,lv,h.terrain);
     }
   });
   let goldProd = netTax+portGold;
-  const treasurer = (STATE.characters||[]).find(c=>c.assignment==='Treasury');
-  if(treasurer) goldProd += floor(goldProd*treasurer.economics*0.2/100);
-  const foodProd = farmFood+terrainFood;
+  goldProd += masterBonus('Treasury', netTax, 'economics');   // Tesoureiro: só imposto (§2.9.7)
+  goldProd += masterBonus('Ports', portGold, 'management');   // Mestre dos Portos: ouro dos portos
+  const foodProd = farmFood+terrainFood+masterBonus('Farms', farmFood, 'management');
+  mineIron += masterBonus('Mines', mineIron, 'management');
+  lumberWood += masterBonus('Lumbermills', lumberWood, 'management');
+  quarryStone += masterBonus('Quarries', quarryStone, 'management');
 
   // --- Consumo (manutenção contínua das tropas em pé) ---
   let goldCons=0, foodCons=0, ironCons=0;
@@ -2310,13 +2872,18 @@ function renderBalanco(){
     });
   });
 
+  // Criação de Cavalos (§6.12, novo): ganho = arred.cima(cavalos × 1–3%), precisa de ≥2 (par reprodutor), mínimo 1/turno com 2+
+  const curHorses = STATE.resources.horses||0;
+  const horsePts = horseMasterPoints(); // Mestre dos Cavalos: Gestão × 0,02 pontos percentuais (§2.9.9)
+  const horseProd = curHorses>=2 ? Math.max(1, Math.ceil(curHorses*(2+horsePts)/100)) : 0; // taxa média (2%) + Mestre; a real é 1–3%, sorteada por turno
+
   const rows = [
-    {key:'gold',   label:'💰 Ouro',   prod:goldProd, cons:goldCons, note:'Imposto + porto + bónus, menos manutenção do exército'},
+    {key:'gold',   label:'💰 Ouro',   prod:goldProd, cons:goldCons, note:'Imposto + porto + bónus dos Mestres atribuídos (Tesoureiro só sobre o imposto), menos manutenção do exército'},
     {key:'food',   label:'🌾 Comida', prod:foodProd, cons:foodCons, note:'Quintas + planícies nuas, menos consumo do exército'},
     {key:'iron',   label:'⚙ Ferro',  prod:mineIron, cons:ironCons, note:'Minas, menos manutenção de unidades que consomem ferro'},
     {key:'wood',   label:'🪵 Madeira',prod:lumberWood, cons:0, note:'Sem consumo recorrente — só custos únicos de construção/recrutamento'},
     {key:'stone',  label:'🪨 Pedra',  prod:quarryStone, cons:0, note:'Sem consumo recorrente — só custos únicos de construção'},
-    {key:'horses', label:'🐴 Cavalos',prod:0, cons:0, note:'Sem produção nem consumo recorrentes neste jogo — só mercado/recrutamento'},
+    {key:'horses', label:'🐴 Cavalos',prod:horseProd, cons:0, note: curHorses>=2 ? 'Criação (§6.12): 1–3%/turno do rebanho atual, arredondado para cima — mostrado com a taxa média (2%)'+(horsePts>0?` + Mestre dos Cavalos (+${horsePts.toFixed(1)} pontos)`:'')+'; o valor real varia turno a turno' : 'Precisas de pelo menos 2 cavalos (par reprodutor) para haver criação'},
   ];
 
   document.querySelector('#balanceTable tbody').innerHTML = rows.map(r=>{
@@ -2355,25 +2922,724 @@ function renderBalanco(){
           }).join('')}
         </tbody>
       </table></div>
-      <p class="small muted" style="margin-top:8px;">Vender no mercado costuma ter um deságio (o preço de compra do mercado é mais baixo que o de tabela) — estes números usam a mesma taxa de venda (60%) que o resto do painel.</p>
+      <p class="small muted" style="margin-top:8px;">Vender no mercado costuma ter um deságio (o preço de compra do mercado é mais baixo que o de tabela) — estes números usam a mesma taxa de venda (60%) que o resto do painel. Desde o manual v747 o preço move-se pelo <b>volume líquido</b> negociado (até ±15% por turno; profundidade = reinos ativos × 999 × 50%) e já não pela percentagem de reinos que compraram.</p>
     `;
   }
+}
+
+/* ============================== ORDENS ENVIADAS ============================== */
+const SITE_LABEL_ORDERS = SITE_LABEL; // reutiliza o mapa já existente (farm/mine/port/lumbermill/quarry)
+function foundingsCounterKey(kid){ return 'trevasxxi_foundings_'+(kid||STATE.kingdom_id||'default'); }
+function loadFoundingsCount(kid){ try{ return parseInt(localStorage.getItem(foundingsCounterKey(kid))||'0'); }catch(e){ return 0; } }
+function bumpFoundingsCount(turn, kid){
+  try{
+    const key = foundingsCounterKey(kid);
+    const seenKey = key+'_turns';
+    const seenTurns = JSON.parse(localStorage.getItem(seenKey)||'[]');
+    if(seenTurns.includes(turn)) return; // já contado este turno (reimport), não duplica
+    seenTurns.push(turn);
+    localStorage.setItem(seenKey, JSON.stringify(seenTurns));
+    localStorage.setItem(key, String(loadFoundingsCount(kid)+1));
+  }catch(e){}
+}
+
+// Extrai o custo em ouro de uma ordem — alguns tipos guardam um número, recruit_unit guarda um objeto {gold,food,wood,horses,iron}
+function orderGoldCost(o){
+  if(o.cost==null) return 0;
+  if(typeof o.cost==='number') return o.cost;
+  if(typeof o.cost==='object') return o.cost.gold||0;
+  return 0;
+}
+function orderCostText(o){
+  if(o.cost==null) return '';
+  if(typeof o.cost==='number') return `${fmt(o.cost)}g`;
+  if(typeof o.cost==='object'){
+    return Object.entries(o.cost).filter(([k,v])=>v).map(([k,v])=>`${fmt(v)}${k[0]}`).join(' ');
+  }
+  return '';
+}
+
+function describeOrder(o, unitIdx){
+  switch(o.type){
+    case 'create_army':
+      return {cat:'Exércitos', icon:'🏳', text:`Criar Exército ${o.army_num}${o.label?` "${o.label}"`:''}`, cost:0};
+    case 'recruit_unit': {
+      const u = unitIdx[o.unit_id];
+      return {cat:'Recrutamento', icon:'⚔', text:`Recrutar ${fmt(o.qty)}× ${o.unit_name||o.unit_id} no Exército ${o.army_num}`, cost:orderGoldCost(o), costText:orderCostText(o)};
+    }
+    case 'build_site':
+      return {cat:'Construção', icon:'🏗', text:`Construir ${SITE_LABEL_ORDERS[o.site_type]||o.site_type} em (${o.col},${o.row})`, cost:orderGoldCost(o)};
+    case 'upgrade_site':
+      return {cat:'Construção', icon:'🏗', text:`Melhorar ${SITE_LABEL_ORDERS[o.site_type]||o.site_type} em (${o.col},${o.row}) para Nv.${o.to_level}`, cost:orderGoldCost(o)};
+    case 'raze_site':
+      return {cat:'Construção', icon:'💥', text:`Demolir local em (${o.col},${o.row})`, cost:orderGoldCost(o)};
+    case 'upgrade_construction':
+      return {cat:'Construção', icon:'🏛', text:`Melhorar construção em (${o.col},${o.row})`, cost:orderGoldCost(o)};
+    case 'repair_wall':
+      return {cat:'Construção', icon:'🧱', text:`Reparar muralha em (${o.col},${o.row})`, cost:orderGoldCost(o)};
+    case 'found_construction':
+      return {cat:'Construção', icon:'🏕', text:`Fundar novo assentamento (${o.family}) em (${o.col},${o.row})`, cost:0, isFounding:true};
+    case 'move_construction':
+      return {cat:'Construção', icon:'🚚', text:`Mover acampamento para (${o.col},${o.row})`, cost:orderGoldCost(o)};
+    case 'assign_character': {
+      const a = (o.assignment||'none').toLowerCase();
+      const roleMapPT = {treasury:'Tesoureiro', farms:'Mestre de Quintas', ports:'Mestre dos Portos', mines:'Mestre de Minas', lumbermills:'Mestre das Serrarias', quarries:'Mestre das Pedreiras', horses:'Mestre dos Cavalos', spy:'Mestre dos Espiões', none:'nenhuma'};
+      return {cat:'Personagens', icon:'👤', text:`${o.char_name}: atribuição → ${roleMapPT[a]||o.assignment}`, cost:0, assignment:a};
+    }
+    case 'hire_character':
+      return {cat:'Personagens', icon:'🎖', text:`Contratar ${o.name} para a corte`, cost:1000, costApprox:true};
+    case 'dismiss_character':
+      return {cat:'Personagens', icon:'👋', text:`Dispensar personagem`, cost:0};
+    case 'hire_spy':
+      return {cat:'Diplomacia', icon:'🕵', text:`Enviar espião para (${o.col},${o.row})`, cost:orderGoldCost(o), isSpy:true};
+    case 'diplomacy':
+      return {cat:'Diplomacia', icon:'🤝', text:`Ação diplomática${o.target_name?': '+o.target_name:''}`, cost:0};
+    case 'become_vassal':
+      return {cat:'Diplomacia', icon:'🏳', text:`Tornar-se vassalo`, cost:0};
+    case 'leave_vassalage':
+      return {cat:'Diplomacia', icon:'🏳', text:`Deixar vassalagem`, cost:0};
+    case 'set_vassal_tribute':
+      return {cat:'Diplomacia', icon:'💰', text:`Ajustar tributo de vassalo`, cost:0};
+    case 'tax_change':
+      return {cat:'Impostos', icon:'📈', text:`Alterar taxa de imposto: ${o.from}% → ${o.to}%`, cost:0, isTax:true};
+    case 'move_army':
+      return {cat:'Exércitos', icon:'🚶', text:`Mover Exército ${o.army_num}: (${o.from?.col},${o.from?.row}) → (${o.to?.col},${o.to?.row})`, cost:0};
+    case 'set_army_stance':
+      return {cat:'Exércitos', icon:'🛡', text:`Exército ${o.army_num}: postura → ${o.stance}`, cost:0};
+    case 'split_army':
+      return {cat:'Exércitos', icon:'✂', text:`Dividir Exército ${o.from_army_num} → novo Exército ${o.new_army_num}`, cost:0};
+    case 'link_armies':
+      return {cat:'Exércitos', icon:'🔗', text:`Juntar exércitos`, cost:0};
+    case 'embark_army':
+      return {cat:'Exércitos', icon:'⛴', text:`Embarcar Exército ${o.army_num}`, cost:0};
+    case 'build_ship':
+      return {cat:'Frotas', icon:'⛵', text:`Construir navio`, cost:orderGoldCost(o)};
+    case 'create_fleet':
+      return {cat:'Frotas', icon:'⛵', text:`Criar frota`, cost:0};
+    case 'move_fleet':
+      return {cat:'Frotas', icon:'⛵', text:`Mover Frota ${o.fleet_num||''}`, cost:0};
+    case 'set_fleet_stance':
+      return {cat:'Frotas', icon:'⛵', text:`Frota: postura → ${o.stance}`, cost:0};
+    case 'send_resource':
+      return {cat:'Outros', icon:'📦', text:`Enviar recursos`, cost:0};
+    case 'transfer_hex':
+      return {cat:'Outros', icon:'🗺', text:`Transferir hexágono (${o.col},${o.row})`, cost:0};
+    default:
+      return {cat:'Outros', icon:'•', text:o.type, cost:orderGoldCost(o)};
+  }
+}
+
+function renderOrdersUploadHandlers(){
+  const dz = document.getElementById('ordersDropZone');
+  const fi = document.getElementById('ordersFileInput');
+  if(dz.dataset.bound) return;
+  dz.dataset.bound='1';
+  dz.addEventListener('click', ()=>fi.click());
+  dz.addEventListener('dragover', e=>{e.preventDefault(); dz.style.borderColor='var(--gold)';});
+  dz.addEventListener('dragleave', ()=>{dz.style.borderColor='var(--border)';});
+  dz.addEventListener('drop', e=>{ e.preventDefault(); dz.style.borderColor='var(--border)'; const f=e.dataTransfer.files[0]; if(f) handleOrdersFile(f); });
+  fi.addEventListener('change', e=>{ const f=e.target.files[0]; if(f) handleOrdersFile(f); });
+}
+
+function handleOrdersFile(f){
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try{
+      const raw = JSON.parse(ev.target.result);
+      const turnNum = raw.turn ?? raw._submittedTurn ?? '?';
+      const kingdomName = (raw.kingdom&&raw.kingdom.name)||'reino desconhecido';
+      const isDraft = !!raw._trevas_draft;
+      processOrdersFile(raw);
+      document.getElementById('ordersLoadStatus').innerHTML = `<span class="good">✓ ${isDraft?'Rascunho':'Ordens'} do Turno ${turnNum} carregado${isDraft?'':'as'} (${kingdomName}).</span>`;
+    }catch(err){
+      document.getElementById('ordersLoadStatus').innerHTML = '<span class="bad">✗ Não foi possível ler este ficheiro: '+err.message+'</span>';
+    }
+  };
+  reader.readAsText(f);
+}
+
+function processOrdersFile(raw){
+  if(raw.kingdom && STATE.kingdom_id && raw.kingdom.id!==STATE.kingdom_id){
+    document.getElementById('ordersLoadStatus').innerHTML = `<span class="warn">⚠ Este ficheiro de ordens é do reino "${raw.kingdom.name}", mas o relatório carregado é doutro reino. Os marcos do Plano de Campanha só se ajustam corretamente se forem do mesmo reino.</span>`;
+  }
+  const turnNum = raw.turn ?? raw._submittedTurn ?? null;
+  // Aceita tanto o rascunho local (_trevas_draft: turnOrders) como o ficheiro final exportado (orders)
+  const ordersRaw = raw.turnOrders || raw.orders || [];
+  const unitIdx = fullUnitIndex();
+  const orders = ordersRaw.filter(o=>o.type); // ignora ruído sem type
+  const described = orders.map(o=>describeOrder(o,unitIdx));
+
+  // Reconstrói o teto de recrutamento (5% da população INICIAL do hexágono, não desce ao recrutar)
+  // — só é possível quando o relatório desse turno está carregado, para sabermos a população.
+  const recruitCapUsed = {}; // "col,row" -> soldados já contabilizados neste ficheiro, por ordem
+  orders.forEach((o,idx)=>{
+    if(o.type!=='recruit_unit' || !o.hex) return;
+    const hexKey = `${o.hex.col},${o.hex.row}`;
+    const hexData = STATE.hexes.find(h=>h.col===o.hex.col && h.row===o.hex.row);
+    if(!hexData){ described[idx].capNote = null; return; }
+    const cap = Math.max(1, floor(hexData.population*0.05));
+    const usedBefore = recruitCapUsed[hexKey]||0;
+    const usedAfter = usedBefore + (o.qty||0);
+    recruitCapUsed[hexKey] = usedAfter;
+    described[idx].capNote = `teto (${o.hex.col},${o.hex.row}): ${fmt(usedAfter)}/${fmt(cap)} usado, ${fmt(Math.max(0,cap-usedAfter))} por usar este turno`;
+  });
+
+  // Totais
+  const goldSpent = described.reduce((s,d)=>s+(d.cost||0),0);
+  const byCat = {};
+  described.forEach(d=>{ byCat[d.cat]=(byCat[d.cat]||0)+1; });
+
+  document.getElementById('ordersSummaryCard').style.display='block';
+  document.getElementById('ordersSummaryStats').innerHTML = `
+    <div class="stat"><div class="v">${orders.length}</div><div class="l">Ordens no total</div></div>
+    <div class="stat"><div class="v">${fmt(goldSpent)}g</div><div class="l">Ouro comprometido este turno</div></div>
+    <div class="stat"><div class="v">${Object.keys(byCat).length}</div><div class="l">Categorias diferentes</div></div>
+  `;
+
+  // Regista sempre com a tradução estruturada em português (describeOrder), nunca com o eventLog
+  // bruto do player_page — esse vem em inglês e ficava inconsistente com o resto do painel.
+  let logHtml = '<div class="card"><h3>Registo de Ordens deste Turno</h3>';
+  if(described.length){
+    const cats = ['Construção','Recrutamento','Personagens','Exércitos','Frotas','Impostos','Diplomacia','Outros'];
+    cats.forEach(cat=>{
+      const items = described.filter(d=>d.cat===cat);
+      if(!items.length) return;
+      logHtml += `<h4 style="margin-top:10px;color:var(--sand);font-family:var(--font-display);font-size:.88rem;">${cat}</h4><ul class="small" style="margin-top:4px;">`;
+      items.forEach(d=>{
+        const costStr = d.costText || (d.cost?`${fmt(d.cost)}g`:'');
+        logHtml += `<li>${d.icon} ${d.text}${costStr?` — ${d.costApprox?'~':''}${costStr}`:''}${d.capNote?`<br><span class="muted small">${d.capNote}</span>`:''}</li>`;
+      });
+      logHtml += '</ul>';
+    });
+  } else {
+    logHtml += '<p class="muted">Nenhuma ordem com ação neste ficheiro (turno em branco, ou só posturas/movimentos sem custo).</p>';
+  }
+  logHtml += '</div>';
+  document.getElementById('ordersLogCard').innerHTML = logHtml;
+
+  // --- Ligação automática ao Plano de Campanha ---
+  // Usa sempre o kingdom_id do PRÓPRIO ficheiro de ordens, não o do relatório atualmente carregado —
+  // assim os marcos ficam gravados no sítio certo mesmo que o relatório deste reino ainda não
+  // tenha sido carregado nesta sessão (e apareçam assim que for).
+  const kidForPlan = (raw.kingdom && raw.kingdom.id) || STATE.kingdom_id || 'default';
+  const check = (id)=>savePlanCheck(id, true, kidForPlan);
+  if(described.some(d=>d.cat==='Construção' && /Quinta/.test(d.text))) check('f1_farm');
+  if(described.some(d=>d.cat==='Construção' && /Serraria/.test(d.text))) check('f1_lumber');
+  if(described.some(d=>d.assignment==='treasury')) check('f1_treasurer');
+  if(described.some(d=>d.isTax)) check('f1_tax');
+  if(described.some(d=>d.cat==='Recrutamento')) check('f1_garrison');
+  if(described.some(d=>d.isSpy)) check('f3_spy');
+  if(described.some(d=>d.isFounding)){
+    check('f1_found1');
+    bumpFoundingsCount(turnNum, kidForPlan);
+    if(loadFoundingsCount(kidForPlan)>=2) check('f2_found2');
+  }
+  if(kidForPlan!==STATE.kingdom_id){
+    document.getElementById('ordersLoadStatus').innerHTML += `<br><span class="warn small">⚠ O relatório deste reino ainda não está carregado nesta sessão — os marcos do Plano de Campanha ficaram guardados e vão aparecer riscados assim que carregares o relatório correspondente.</span>`;
+  }
+
+  // --- Informação de exércitos extraída das ordens, para o separador Exércitos separar "já tinha" de
+  // "recrutado este turno" e mostrar movimentos/posturas/divisões que o relatório ainda não confirma.
+  const byArmy = {};
+  const ensureArmy = (num)=>{ if(!byArmy[num]) byArmy[num]={num, label:null, created:false, recruits:[], moves:[], stanceChanges:[], splitsOut:[], embarks:0}; return byArmy[num]; };
+  orders.forEach(o=>{
+    if(o.type==='create_army'){ const e=ensureArmy(o.army_num); e.created=true; e.label=o.label||null; }
+    if(o.type==='recruit_unit'){ const e=ensureArmy(o.army_num); const def=unitIdx[o.unit_id]; e.recruits.push({unitId:o.unit_id, unitName:o.unit_name||(def&&def.name)||o.unit_id, qty:o.qty||0}); }
+    if(o.type==='move_army'){ const e=ensureArmy(o.army_num); e.moves.push({from:o.from, to:o.to}); }
+    if(o.type==='set_army_stance'){ const e=ensureArmy(o.army_num); e.stanceChanges.push(o.stance); }
+    if(o.type==='embark_army'){ const e=ensureArmy(o.army_num); e.embarks++; }
+    if(o.type==='split_army'){ const e=ensureArmy(o.from_army_num); e.splitsOut.push({toNum:o.new_army_num, units:o.units||[]}); const ne=ensureArmy(o.new_army_num); ne.created=true; }
+    if(o.type==='link_armies' && o.army_num) ensureArmy(o.army_num);
+  });
+  if(kidForPlan===STATE.kingdom_id || !STATE.kingdom_id){
+    STATE.lastOrders = { kingdomId: kidForPlan, turn: turnNum, byArmy };
+  }
+
+  renderPlano(); // refresca os marcos imediatamente (mostra já, se o reino coincidir)
+  renderExercitos(); // refresca a separação "já tinha" / "recrutado agora"
+}
+
+/* ============================== CALCULADORA DE BATALHA NAVAL ============================== */
+function renderNaval(){
+  const canHaveFleet = !(STATE.race==='Orc'||STATE.race==='Dwarf');
+  const noFleetNote = document.getElementById('navalNoFleetNote');
+  const content = document.getElementById('navalContent');
+  if(STATE.kingdom_id && !canHaveFleet){
+    noFleetNote.style.display='block'; content.style.display='none';
+    document.getElementById('navalNoFleetText').textContent = `O teu reino (${RACE_LABEL_PT[STATE.race]||STATE.race}) não pode ter frota — esta calculadora não se aplica.`;
+    return;
+  }
+  noFleetNote.style.display='none'; content.style.display='block';
+
+  document.getElementById('ownFleetTitle').textContent = `🛡 A Tua Frota (${RACE_LABEL_PT[STATE.race]||STATE.race}) + aliados`;
+  const navyRaces = Object.keys(SHIP_ROSTER_BY_RACE);
+  initStackBuilder('ownFleet', SHIP_ROSTER_BY_RACE, STATE.race);
+  initStackBuilder('enemyFleet', SHIP_ROSTER_BY_RACE, navyRaces.find(r=>r!==STATE.race)||navyRaces[0]);
+  renderStackTable('ownFleet', SHIP_ROSTER_BY_RACE);
+  renderStackTable('enemyFleet', SHIP_ROSTER_BY_RACE);
+
+  const fleets = STATE.fleets||[];
+  const prefillRow = document.getElementById('ownFleetPrefillRow');
+  const noFleetsNote = document.getElementById('ownFleetNoFleetsNote');
+  if(fleets.length){
+    prefillRow.style.display='flex'; noFleetsNote.style.display='none';
+    const prefillSel = document.getElementById('ownFleetPrefillSel');
+    prefillSel.innerHTML = fleets.map((f,i)=>{
+      const total = (f.ships||f.units||[]).reduce((s,u)=>s+(u.count||0),0);
+      return `<option value="${i}">Frota ${f.num||i+1} — ${fmt(total)} navios, ESTADO ${f.status??100}%</option>`;
+    }).join('');
+    document.getElementById('ownFleetPrefillBtn').onclick = ()=>{
+      const f = fleets[parseInt(prefillSel.value)];
+      if(!f) return;
+      const shipList = (f.ships||f.units||[]).map(x=>({unitId:x.unitId||x.shipId, count:x.count}));
+      prefillStacksFromRoster('ownFleet', shipList, STATE.race, SHIP_ROSTER_BY_RACE);
+      document.getElementById('ownFleetStatus').value = f.status ?? 100;
+    };
+  } else {
+    prefillRow.style.display='none'; noFleetsNote.style.display='block';
+  }
+
+  const commSel = document.getElementById('ownFleetCommander');
+  if(!commSel.dataset.filled){
+    commSel.innerHTML = '<option value="0">Nenhum</option>' + (STATE.characters||[]).filter(c=>!c.dead).map(c=>`<option value="${c.military}">${c.name} (Militar ${c.military})</option>`).join('');
+    commSel.dataset.filled='1';
+  }
+
+  document.getElementById('calcNavalBtn').onclick = computeNavalBattle;
+}
+
+function computeNavalBattle(){
+  const own = stackTotals('ownFleet', SHIP_ROSTER_BY_RACE);
+  const enemy = stackTotals('enemyFleet', SHIP_ROSTER_BY_RACE);
+  document.getElementById('navalResultCard').style.display='block';
+  const out = document.getElementById('navalResult');
+
+  if(own.totalCount===0 || enemy.totalCount===0){
+    out.innerHTML = '<p class="bad">Adiciona pelo menos um navio de cada lado.</p>'; return;
+  }
+
+  const whoAttacks = document.getElementById('whoAttacksNaval').value;
+  const ownIsAttacker = whoAttacks==='own';
+  const ownStatus = Math.max(0.1,(parseFloat(document.getElementById('ownFleetStatus').value)||100)/100);
+  const enemyStatus = Math.max(0.1,(parseFloat(document.getElementById('enemyFleetStatus').value)||100)/100);
+  const ownCmdMil = parseFloat(document.getElementById('ownFleetCommander').value)||0;
+  const enemyCmdMil = parseFloat(document.getElementById('enemyFleetCommander').value)||0;
+  const ownCmdMult = 1+ownCmdMil/1000, enemyCmdMult = 1+enemyCmdMil/1000;
+  const ownPortMod = document.getElementById('ownFleetPortMod').checked ? 1.25 : 1.0;
+  const enemyPortMod = document.getElementById('enemyFleetPortMod').checked ? 1.25 : 1.0;
+  const ownCargoMod = document.getElementById('ownFleetCargo').checked ? 0.85 : 1.0;
+  const enemyCargoMod = document.getElementById('enemyFleetCargo').checked ? 0.85 : 1.0;
+  const ownRaceMod = own.dominantRace==='Aesir' ? 1.05 : 1.0;
+  const enemyRaceMod = enemy.dominantRace==='Aesir' ? 1.05 : (document.getElementById('enemyIsPirate').checked ? 1.10 : 1.0);
+
+  const iniciativa = 1.075, varMid = 1.0;
+
+  let attWP,defWP,attStatus,defStatus,attCmdMult,defCmdMult,attPortMod,defPortMod,attCargoMod,defCargoMod,attRaceMod,defRaceMod;
+  if(ownIsAttacker){
+    attWP=own.totalWP; defWP=enemy.totalWP; attStatus=ownStatus; defStatus=enemyStatus;
+    attCmdMult=ownCmdMult; defCmdMult=enemyCmdMult; attPortMod=ownPortMod; defPortMod=enemyPortMod;
+    attCargoMod=ownCargoMod; defCargoMod=enemyCargoMod; attRaceMod=ownRaceMod; defRaceMod=enemyRaceMod;
+  } else {
+    attWP=enemy.totalWP; defWP=own.totalWP; attStatus=enemyStatus; defStatus=ownStatus;
+    attCmdMult=enemyCmdMult; defCmdMult=ownCmdMult; attPortMod=enemyPortMod; defPortMod=ownPortMod;
+    attCargoMod=enemyCargoMod; defCargoMod=ownCargoMod; attRaceMod=enemyRaceMod; defRaceMod=ownRaceMod;
+  }
+  const attRoll = attWP*attStatus*attPortMod*iniciativa*attCmdMult*attCargoMod*attRaceMod*varMid;
+  const defRoll = defWP*defStatus*defPortMod*defCmdMult*defCargoMod*defRaceMod*varMid;
+
+  let outcome, ratio;
+  if(attRoll > defRoll*1.2){ outcome='atacante'; ratio=attRoll/defRoll; }
+  else if(defRoll > attRoll*1.2){ outcome='defensor'; ratio=defRoll/attRoll; }
+  else { outcome='empate'; ratio=1; }
+
+  function lossPctWinner(r){ return 0.10/r; }
+  function lossPctLoser(r){
+    if(r<=10) return Math.min(0.60, Math.max(0.12+0.18*Math.log(r), 0.12*r));
+    if(r<=13) return 0.60;
+    if(r>=25) return 1.0;
+    return 0.50+0.50*(r-10)/15;
+  }
+  let attLossPct, defLossPct;
+  if(outcome==='atacante'){ attLossPct=lossPctWinner(ratio); defLossPct=lossPctLoser(ratio); }
+  else if(outcome==='defensor'){ defLossPct=lossPctWinner(ratio); attLossPct=lossPctLoser(ratio); }
+  else { attLossPct=defLossPct=0.09; }
+
+  function shipDeathFactor(gEq){ return Math.max(0.3, Math.min(1.0, 1.0-gEq/1100)); }
+  const ownIsLoser = (outcome==='atacante'&&!ownIsAttacker)||(outcome==='defensor'&&ownIsAttacker)||outcome==='empate';
+  const enemyIsLoser = (outcome==='atacante'&&ownIsAttacker)||(outcome==='defensor'&&!ownIsAttacker)||outcome==='empate';
+  // a armadura dissolve-se no mesmo calendário 5:1 → 10:1 (fator de morte → 1,0 em 10:1)
+  const dissolveSea = (df)=> (outcome!=='empate' && ratio>5) ? df+(1-df)*Math.min(1,(ratio-5)/5) : df;
+  const ownDF = ownIsLoser ? dissolveSea(shipDeathFactor(own.avgGEq)) : shipDeathFactor(own.avgGEq);
+  const enemyDF = enemyIsLoser ? dissolveSea(shipDeathFactor(enemy.avgGEq)) : shipDeathFactor(enemy.avgGEq);
+  let ownLossPct, enemyLossPct;
+  if(ownIsAttacker){ ownLossPct=attLossPct; enemyLossPct=defLossPct; } else { ownLossPct=defLossPct; enemyLossPct=attLossPct; }
+  let ownLosses = Math.round(ownLossPct*own.totalCount*ownDF);
+  let enemyLosses = Math.round(enemyLossPct*enemy.totalCount*enemyDF);
+  // "o perdedor paga sempre pelo menos um casco — por frota" (§5.9.3), mas empates ficam isentos, tal como em terra
+  if(outcome!=='empate'){
+    if(ownIsLoser) ownLosses = Math.max(1, ownLosses);
+    if(enemyIsLoser) enemyLosses = Math.max(1, enemyLosses);
+  }
+  const annihilated = ratio>=10;
+
+  const outcomeLabel = outcome==='empate' ? 'Empate' : (outcome==='atacante' ? (ownIsAttacker?'Vitória tua (atacante)':'Vitória do inimigo (atacante)') : (ownIsAttacker?'Vitória do inimigo (defensor)':'Vitória tua (defensor)'));
+  const ownWinning = (outcome==='atacante'&&ownIsAttacker)||(outcome==='defensor'&&!ownIsAttacker);
+
+  out.innerHTML = `
+    <div class="grid cols3">
+      <div class="stat"><div class="v ${ownWinning?'good':(outcome==='empate'?'':'bad')}">${outcomeLabel}</div><div class="l">Resultado esperado</div></div>
+      <div class="stat"><div class="v">${ratio.toFixed(2)}:1</div><div class="l">Rácio de força</div></div>
+      <div class="stat"><div class="v">${fmt(own.totalWP)} vs ${fmt(enemy.totalWP)}</div><div class="l">WP de frota bruto</div></div>
+    </div>
+    <div class="hr"></div>
+    <div class="grid cols2">
+      <div>
+        <h3>A Tua Frota</h3>
+        <p>WP: ${fmt(own.totalWP)} (${fmt(own.totalCount)} navios)</p>
+        <p>Baixas esperadas: <b class="${ownIsLoser?'bad':'good'}">${fmt(ownLosses)} de ${fmt(own.totalCount)}</b> (${(ownLossPct*100).toFixed(1)}% nominal × fator morte ${ownDF.toFixed(2)})</p>
+      </div>
+      <div>
+        <h3>Inimigo${enemy.dominantRace?` (dominante: ${RACE_LABEL_PT[enemy.dominantRace]})`:''}</h3>
+        <p>WP: ${fmt(enemy.totalWP)} (${fmt(enemy.totalCount)} navios)</p>
+        <p>Baixas esperadas: <b class="${enemyIsLoser?'bad':'good'}">${fmt(enemyLosses)} de ${fmt(enemy.totalCount)}</b> (${(enemyLossPct*100).toFixed(1)}% nominal × fator morte ${enemyDF.toFixed(2)})</p>
+      </div>
+    </div>
+    ${annihilated?'<p class="bad" style="margin-top:8px;"><b>⚠ A 10:1 ou pior, a frota derrotada é aniquilada por completo no mar</b> (a rampa naval é mais curta que a terrestre: 5:1 → 10:1) — a percentagem de baixas acima já reflete isso.</p>':''}
+    <p class="small muted" style="margin-top:8px;">${outcome==='empate' ? 'Nenhum dos lados atinge a margem decisiva de ×1,2 — empate: ambos os lados sofrem 6–12% de baixas nominais, sem mínimo de 1 casco.' : `Vitória decisiva exige atacar > defender×1,2. Aqui: ${fmt(attRoll)} vs ${fmt(defRoll)}×1,2=${fmt(defRoll*1.2)}.`} Abaixo de 25:1, uma frota derrotada só é destruída por completo se não tiver para onde recuar — esta calculadora não modela isso, mostra só a curva de baixas. Cenário sem variância aleatória de ±10%.</p>
+  `;
+}
+
+/* ============================== MAPA ============================== */
+const MAP_TERRAIN_COLOR={plains:'#8a9a4a',desert:'#c9a04a',forest:'#4a8a5a',mountain:'#8a7a7a',hills:'#a08a5a',swamp:'#5a8a6a',sea:'#3a5a7a'};
+const MAP_SITE_EMOJI={farm:'🌾',mine:'⛏',port:'⚓',lumbermill:'🪵',quarry:'🪨',forge:'🔥'};
+const MAP_ALLEGIANCE_COLOR={war:'#e87a7a',alliance:'#7ab5e8',vassal:'#7ab5e8',peace:'#8a9a4a',unknown:'#6b6558'};
+function mapHexPx(col,row,size){ return {x:size*Math.sqrt(3)*(col+0.5*(row&1)), y:size*1.5*row}; }
+function mapHexPoints(cx,cy,size){
+  const pts=[];
+  for(let i=0;i<6;i++){ const ang=Math.PI/180*(60*i-30); pts.push(`${(cx+size*Math.cos(ang)).toFixed(1)},${(cy+size*Math.sin(ang)).toFixed(1)}`); }
+  return pts.join(' ');
+}
+function getKingdomInfo(kid){ return (STATE.map_kingdoms||[]).find(k=>k.id===kid); }
+
+function renderMapa(){
+  const mapHexes = STATE.mapHexes||[];
+  const emptyNote = document.getElementById('mapaEmptyNote');
+  const content = document.getElementById('mapaContent');
+  if(!STATE.kingdom_id || !mapHexes.length){
+    emptyNote.style.display='block'; content.style.display='none';
+    return;
+  }
+  emptyNote.style.display='none'; content.style.display='block';
+
+  if(window.innerWidth<480) document.getElementById('mapaMobileWarn').style.display='block';
+  document.getElementById('mapaWrapNote').style.display = (STATE.wrap&&STATE.wrap.cols) ? 'block' : 'none';
+
+  // Mapa circular (§2.14.8): as colunas dão a volta, por isso o que está junto à costura (col 0 ↔ col N−1) tem de ser
+  // desenhado lado a lado. Desdobramos cada coluna para a posição mais próxima da âncora (o centro do teu território).
+  const W = (STATE.wrap&&STATE.wrap.cols&&STATE.mapCols) ? STATE.mapCols : 0;
+  const ownCols = (STATE.hexes||[]).map(h=>h.col);
+  const anchor = ownCols.length ? ownCols[0] : mapHexes[0].col;
+  const unwrapCol = (c)=> W ? anchor + ((((c-anchor+W/2)%W)+W)%W) - W/2 : c;
+  const wrapCol = (c)=> W ? (((c%W)+W)%W) : c;
+  const byKey = {}; mapHexes.forEach(h=>{ byKey[unwrapCol(h.col)+','+h.row]=h; });
+  const uCols = mapHexes.map(h=>unwrapCol(h.col));
+  const cmin=Math.min(...uCols)-2, cmax=Math.max(...uCols)+2;
+  const rmin=Math.min(...mapHexes.map(h=>h.row))-2, rmax=Math.max(...mapHexes.map(h=>h.row))+2;
+
+  // Marcadores de exército: os teus (reais, de STATE.armies + _hex) e os inimigos avistados em
+  // combates perdidos (STATE.lost_hexes cruzado com os eventos, mesma lógica do Registo de Batalhas)
+  const markers = {};
+  (STATE.armies||[]).forEach(a=>{
+    if(!a._hex) return;
+    const total = (a.units||[]).reduce((s,u)=>s+u.count,0);
+    markers[a._hex.col+','+a._hex.row] = {allegiance:'own', label:`Exército ${a.num} (teu)`, total, status:a.status};
+  });
+  const events = STATE.events||[];
+  (STATE.lost_hexes||[]).forEach(h=>{
+    const e = events.find(ev=>{
+      if(!/^Lost/.test(ev.title||'')) return false;
+      const m=(ev.title||'').match(/\(([\-\d]+),\s*([\-\d]+)\)/);
+      return m && parseInt(m[1])===h.col && parseInt(m[2])===h.row;
+    });
+    const attackerRace = e&&e.attackerRace;
+    const troopMatch = e&&e.effect ? e.effect.match(/Invading force:\s*(\d+)\s*troops?/i) : null;
+    const total = troopMatch ? parseInt(troopMatch[1]) : null;
+    markers[h.col+','+h.row] = {allegiance:'enemy', label:`${RACE_LABEL_PT[attackerRace]||attackerRace||'Inimigo'} avistado (Registo de Batalhas)`, total};
+  });
+
+  const targets = loadTargets();
+  const size=19;
+  const cellData=[];
+  const svgParts=[];
+  for(let r=rmin;r<=rmax;r++){
+    for(let c=cmin;c<=cmax;c++){
+      const h = byKey[c+','+r];
+      const vis = h ? h.visibility : 'hidden';
+      const p = mapHexPx(c,r,size);
+      const idx = cellData.length;
+      let fill='#1c1f28', stroke='#262a36', opacity='0.5';
+      if(vis==='full'){
+        fill = MAP_TERRAIN_COLOR[h.terrain]||'#555'; stroke='var(--gold)'; opacity='0.9';
+      } else if(vis==='border'){
+        fill = MAP_TERRAIN_COLOR[h.terrain]||'#555';
+        const rel = h.kingdom ? (STATE.diplomacy[h.kingdom]||'unknown') : null;
+        stroke = h.kingdom ? MAP_ALLEGIANCE_COLOR[rel] : '#4a4536';
+        opacity='0.4';
+      }
+      svgParts.push(`<polygon class="mapaHexcell" data-idx="${idx}" points="${mapHexPoints(p.x,p.y,size)}" fill="${fill}" fill-opacity="${opacity}" stroke="${stroke}" stroke-width="1.4" style="cursor:pointer;"/>`);
+      if(vis==='full'){
+        if(h.musterSeatOf) svgParts.push(`<text x="${p.x.toFixed(1)}" y="${(p.y-6).toFixed(1)}" text-anchor="middle" font-size="10" fill="#ffd966">★</text>`);
+        if(h.site) svgParts.push(`<text x="${(p.x-6).toFixed(1)}" y="${(p.y+4).toFixed(1)}" text-anchor="middle" font-size="9">${MAP_SITE_EMOJI[h.site.type]||''}</text>`);
+        if(h.population) svgParts.push(`<text x="${(p.x+5).toFixed(1)}" y="${(p.y+8).toFixed(1)}" text-anchor="middle" font-size="6.5" fill="#fff">${h.population>=1000?(Math.round(h.population/1000)+'k'):h.population}</text>`);
+      }
+      const marker = markers[wrapCol(c)+','+r];
+      if(marker){
+        const color = MAP_ALLEGIANCE_COLOR[marker.allegiance==='own'?'alliance':'war'];
+        svgParts.push(`<circle cx="${p.x.toFixed(1)}" cy="${(p.y+3).toFixed(1)}" r="7" fill="${marker.allegiance==='own'?'var(--gold)':color}" stroke="#14161c" stroke-width="1.2"/>`);
+        svgParts.push(`<text x="${p.x.toFixed(1)}" y="${(p.y+6).toFixed(1)}" text-anchor="middle" font-size="8">⚔</text>`);
+      }
+      cellData.push({col:wrapCol(c),ucol:c,row:r,visibility:vis,terrain:h&&h.terrain,population:h&&h.population,construction:h&&h.construction,site:h&&h.site,musterSeatOf:!!(h&&h.musterSeatOf),kingdom:h&&h.kingdom,marker});
+    }
+  }
+  const xs=cellData.map((d,i)=>mapHexPx(d.ucol,d.row,size).x), ys=cellData.map((d,i)=>mapHexPx(d.ucol,d.row,size).y);
+  const minx=Math.min(...xs)-size*1.4, miny=Math.min(...ys)-size*1.4;
+  const w=Math.max(...xs)-Math.min(...xs)+size*2.8, h_total=Math.max(...ys)-Math.min(...ys)+size*2.8;
+  const svg = document.getElementById('mapaSvg');
+  svg.setAttribute('width', w.toFixed(0)); svg.setAttribute('height', h_total.toFixed(0));
+  svg.setAttribute('viewBox', `${minx.toFixed(0)} ${miny.toFixed(0)} ${w.toFixed(0)} ${h_total.toFixed(0)}`);
+  svg.innerHTML = svgParts.join('');
+
+  svg.onclick = (e)=>{
+    const el = e.target.closest('.mapaHexcell');
+    if(!el) return;
+    const d = cellData[parseInt(el.dataset.idx)];
+    const panel = document.getElementById('mapaSidepanel');
+    let html = `<h3>(${d.col},${d.row})</h3>`;
+    if(d.visibility==='hidden'){
+      html += '<p class="muted small">Hexágono por descobrir — sem informação no relatório.</p>';
+    } else {
+      html += `<div class="small" style="margin-bottom:3px;">Terreno: ${TERRAIN_LABEL[d.terrain]||d.terrain||'—'}</div>`;
+      if(d.visibility==='border'){
+        const ki = d.kingdom ? getKingdomInfo(d.kingdom) : null;
+        const rel = d.kingdom ? (STATE.diplomacy[d.kingdom]||'unknown') : null;
+        html += ki ? `<div class="small">Reino: ${ki.name} (${RACE_LABEL_PT[ki.race]||ki.race})</div>` : '<div class="small muted">Sem dono conhecido</div>';
+        if(d.kingdom) html += `<div class="small">Relação: ${DIPLO_LABEL[rel]||'Desconhecida'}</div>`;
+        html += '<p class="muted small">Só fronteira visível — sem população nem construção.</p>';
+        if(d.kingdom && targets[d.kingdom]){
+          const t = targets[d.kingdom];
+          html += `<div class="hr"></div><div class="small">${t.priority?'⭐ Prioritário<br>':''}${t.wpEstimate?'WP estimado: '+fmt(t.wpEstimate)+'<br>':''}${t.notes?'Notas: '+t.notes:''}</div>`;
+        } else if(d.kingdom){
+          html += `<p class="small muted">Sem notas no Registo de Alvos ainda.</p>`;
+        }
+      } else {
+        html += `<div class="small">População: ${d.population!=null?fmt(d.population):'—'}</div>`;
+        html += `<div class="small">Construção: ${d.construction?('Nv.'+d.construction.level+' ('+d.construction.race+')'):'—'}</div>`;
+        html += `<div class="small">Local: ${d.site?SITE_LABEL[d.site.type]+' Nv.'+d.site.size:'—'}</div>`;
+        if(d.musterSeatOf) html += '<div class="small">⭐ Assento de Recrutamento</div>';
+      }
+      if(d.marker){
+        html += `<div class="hr"></div><div class="small">⚔ ${d.marker.label}${d.marker.total?' — '+fmt(d.marker.total)+' soldados':''}${d.marker.status!=null?', ESTADO '+d.marker.status+'%':''}</div>`;
+      }
+    }
+    panel.innerHTML = html;
+  };
+
+  // Altura dinâmica: usa o espaço real que sobra no ecrã abaixo do mapa, em vez de uma percentagem fixa.
+  // "height" (não "max-height") força o painel a preencher esse espaço, não só a não o ultrapassar.
+  // clientWidth/innerHeight só são fiáveis quando o separador está mesmo visível (display:block) —
+  // por isso isto é também chamado outra vez pelo clique no separador "Mapa", com um pequeno atraso.
+  const viewport = document.getElementById('mapaViewport');
+  function fitViewportHeight(){
+    const top = viewport.getBoundingClientRect().top;
+    const available = window.innerHeight - top - 90; // margem para legenda + respiro no fundo
+    viewport.style.height = Math.max(360, available) + 'px';
+  }
+  fitViewportHeight();
+
+  // Zoom "Ajustar" — cabe o território + fronteira inteiros na janela, sem scroll
+  function computeFitZoom(){
+    const availW = viewport.clientWidth - 4 || 400;
+    const availH = viewport.clientHeight - 4 || 400;
+    return Math.max(0.15, Math.min(4, Math.min(availW/w, availH/h_total)*0.98));
+  }
+
+  // Zoom: botões + roda do rato + pinça tátil (idempotente — reatribuído a cada render, não empilha)
+  let zoom = computeFitZoom(); // arranca já ajustado à janela, em vez de sempre a 1:1
+  const applyZoom = ()=>{ svg.style.transform = `scale(${zoom})`; };
+  applyZoom();
+  function refit(){ fitViewportHeight(); zoom = computeFitZoom(); applyZoom(); }
+  window.MapaView = { refit }; // acessível ao separador de navegação, para reajustar quando a aba fica mesmo visível
+  document.getElementById('mapaZoomIn').onclick = ()=>{ zoom=Math.min(3,zoom+0.25); applyZoom(); };
+  document.getElementById('mapaZoomOut').onclick = ()=>{ zoom=Math.max(0.15,zoom-0.25); applyZoom(); };
+  document.getElementById('mapaZoomReset').onclick = ()=>{ zoom=1; applyZoom(); };
+  document.getElementById('mapaZoomFit').onclick = refit;
+  viewport.onwheel = (e)=>{
+    if(!e.ctrlKey && Math.abs(e.deltaY)<2) return;
+    e.preventDefault();
+    zoom = Math.max(0.15, Math.min(3, zoom - e.deltaY*0.001));
+    applyZoom();
+  };
+  let pinchStartDist=null, pinchStartZoom=1;
+  viewport.ontouchstart = (e)=>{
+    if(e.touches.length===2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX, dy=e.touches[0].clientY-e.touches[1].clientY;
+      pinchStartDist=Math.hypot(dx,dy); pinchStartZoom=zoom;
+    }
+  };
+  viewport.ontouchmove = (e)=>{
+    if(e.touches.length===2 && pinchStartDist){
+      e.preventDefault();
+      const dx=e.touches[0].clientX-e.touches[1].clientX, dy=e.touches[0].clientY-e.touches[1].clientY;
+      zoom = Math.max(0.15, Math.min(3, pinchStartZoom*(Math.hypot(dx,dy)/pinchStartDist)));
+      applyZoom();
+    }
+  };
+  viewport.ontouchend = (e)=>{ if(e.touches.length<2) pinchStartDist=null; };
+
+  // Recalcula a altura (não o zoom) quando a janela muda de tamanho ou o telemóvel roda —
+  // só uma vez, guardado num atributo para não empilhar o listener a cada render.
+  if(!window._mapaResizeBound){
+    window._mapaResizeBound = true;
+    window.addEventListener('resize', ()=>{
+      const vp = document.getElementById('mapaViewport');
+      if(!vp) return;
+      const top = vp.getBoundingClientRect().top;
+      vp.style.height = Math.max(360, window.innerHeight-top-90) + 'px';
+    });
+  }
+}
+
+function buildArmyCard(a, ordersInfo, isPredicted){
+  const unitIdx = fullUnitIndex();
+  const seat = STATE.hexes.find(h=>h.musterSeatOf===STATE.kingdom_id) || STATE.hexes.find(h=>h.musterSeatOf);
+  function deathFactorLocal(g){ return Math.max(0.3, Math.min(1.0, 1.0-g/1100)); }
+
+  const hex = a._hex || (a.location==='capital' && seat ? {col:seat.col,row:seat.row} : null);
+  const hexData = hex ? STATE.hexes.find(h=>h.col===hex.col&&h.row===hex.row) : null;
+  const status = a.status ?? 100;
+  const statusClass = status>=80?'good':(status>=50?'warn':'bad');
+
+  // Cruza a composição do relatório (sempre ANTERIOR às ordens deste turno) com os recrutamentos
+  // pedidos nas ordens — mostrados à parte, marcados como "por confirmar" até ao próximo relatório.
+  const recruitByUnit = {}, recruitName = {};
+  (ordersInfo&&ordersInfo.recruits||[]).forEach(r=>{ recruitByUnit[r.unitId]=(recruitByUnit[r.unitId]||0)+r.qty; recruitName[r.unitId]=r.unitName; });
+
+  let totalWP=0, totalCount=0, gEqWeighted=0;
+  const seenUnitIds = new Set();
+  const rows = (a.units||[]).map(u=>{
+    seenUnitIds.add(u.unitId);
+    const def = unitIdx[u.unitId];
+    const wp = def ? def.wp : (u.xp_wp||0);
+    const wpTotal = wp*u.count;
+    totalWP += wpTotal; totalCount += u.count;
+    if(def) gEqWeighted += goldEqCostFull(def.cost)*u.count;
+    const recruitedNow = recruitByUnit[u.unitId]||0;
+    const recruitNote = recruitedNow ? `<br><span class="good small">+${fmt(recruitedNow)} recrutados este turno (por confirmar)</span>` : '';
+    return `<tr><td>${def?def.name:u.unitId}${def&&def.mounted?' 🐎':''}${recruitNote}</td><td>${fmt(u.count)}</td><td>${fmt(wp)}</td><td>${fmt(wpTotal)}</td></tr>`;
+  });
+  // Unidades recrutadas este turno que ainda não existiam neste exército no relatório
+  Object.keys(recruitByUnit).forEach(unitId=>{
+    if(seenUnitIds.has(unitId)) return;
+    const def = unitIdx[unitId];
+    rows.push(`<tr><td>${recruitName[unitId]||(def&&def.name)||unitId}${def&&def.mounted?' 🐎':''}<br><span class="good small">+${fmt(recruitByUnit[unitId])} recrutados este turno (por confirmar)</span></td><td>0</td><td>${def?fmt(def.wp):'—'}</td><td>—</td></tr>`);
+  });
+
+  const avgGEq = totalCount>0 ? gEqWeighted/totalCount : 0;
+  const df = deathFactorLocal(avgGEq);
+  const siegeInfo = hexData && hexData.besieged_by ? `<p class="bad small">⚠ Este hexágono está a ser sitiado (progresso: ${hexData.siege_progress||0}).</p>` : '';
+  const locLabel = a.location==='capital' ? 'Assento de Recrutamento' : (a.location==='field'?'Campo':a.location||'—');
+
+  let ordersBlock = '';
+  if(ordersInfo){
+    const lines = [];
+    ordersInfo.moves.forEach(m=>lines.push(`Moveu-se: (${m.from&&m.from.col},${m.from&&m.from.row}) → (${m.to&&m.to.col},${m.to&&m.to.row})`));
+    ordersInfo.stanceChanges.forEach(s=>lines.push(`Postura alterada para: ${s}`));
+    ordersInfo.splitsOut.forEach(s=>{
+      const totalSplit = (s.units||[]).reduce((sum,u)=>sum+(u.count||0),0);
+      lines.push(`Dividiu ${fmt(totalSplit)} soldados para o novo Exército ${s.toNum}`);
+    });
+    if(ordersInfo.embarks) lines.push('Ordem de embarque dada');
+    if(lines.length) ordersBlock = `<div class="hr"></div><p class="small"><b>Ordens deste turno:</b></p><ul class="small" style="margin-top:2px;">${lines.map(l=>`<li>${l}</li>`).join('')}</ul>`;
+  }
+
+  const predictedBadge = isPredicted ? '<span class="pill" style="border-color:var(--gold);color:var(--gold);margin-left:6px;">previsto — por confirmar</span>' : '';
+
+  return `<div class="card">
+    <div class="flexrow" style="justify-content:space-between;">
+      <h3 style="margin:0;">Exército ${a.num}${a.label?` "${a.label}"`:''}${predictedBadge}</h3>
+      ${totalCount>0?`<button type="button" class="act secondary useArmyInBattle" data-num="${a.num}">Usar na Calculadora de Batalha</button>`:''}
+    </div>
+    <div class="advisor-meta" style="margin-top:6px;">
+      <span>${locLabel}${hexData?` (${hexData.col},${hexData.row})`:''}</span>
+      <span class="${statusClass}">ESTADO ${status}%</span>
+      <span>${fmt(totalCount)} soldados confirmados</span>
+      <span>WP total: ${fmt(totalWP)}</span>
+    </div>
+    ${siegeInfo}
+    <div class="tbl-wrap" style="margin-top:8px;"><table>
+      <thead><tr><th>Unidade</th><th>Qtd. confirmada</th><th>WP individual</th><th>WP total</th></tr></thead>
+      <tbody>${rows.join('')}</tbody>
+    </table></div>
+    <p class="small muted" style="margin-top:6px;">G-EQ médio: ${fmt(avgGEq)} · Fator de morte: ${df.toFixed(2)}</p>
+    ${ordersBlock}
+  </div>`;
+}
+
+function renderExercitos(){
+  const armies = STATE.armies||[];
+  const emptyNote = document.getElementById('exercitosEmptyNote');
+  const listEl = document.getElementById('exercitosList');
+  const ordersByArmy = (STATE.lastOrders && STATE.lastOrders.kingdomId===STATE.kingdom_id) ? STATE.lastOrders.byArmy : {};
+
+  if(!armies.length && !Object.keys(ordersByArmy).length){
+    emptyNote.style.display = STATE.kingdom_id ? 'block' : 'none';
+    listEl.innerHTML='';
+    return;
+  }
+  emptyNote.style.display='none';
+
+  let html = armies.map(a=>buildArmyCard(a, ordersByArmy[a.num]||null, false)).join('');
+
+  // Exércitos que só existem nas ordens deste turno (criados agora, o relatório ainda não os confirma)
+  const existingNums = new Set(armies.map(a=>String(a.num)));
+  Object.values(ordersByArmy).forEach(info=>{
+    if(existingNums.has(String(info.num))) return;
+    if(!info.created && !info.recruits.length) return;
+    const fakeArmy = { num:info.num, label:info.label, location:'field', status:100, units:[], _hex:null };
+    html += buildArmyCard(fakeArmy, info, true);
+  });
+
+  listEl.innerHTML = html;
+
+  document.querySelectorAll('.useArmyInBattle').forEach(btn=>{
+    btn.onclick = ()=>{
+      const a = armies.find(x=>String(x.num)===btn.dataset.num);
+      if(!a) return;
+      prefillStacksFromRoster('own', a.units, STATE.race, UNIT_ROSTER_BY_RACE);
+      document.getElementById('ownStatus').value = a.status ?? 100;
+      document.querySelector('#tabnav button[data-tab="batalha"]').click();
+    };
+  });
 }
 
 function render(){
   renderVisaoGeral();
   renderAdvisor();
   renderTerritorio();
+  renderMapa();
   renderConstrucao();
   renderRecrutamento();
+  renderExercitos();
   renderPersonagens();
   renderImpostos();
   renderPlano();
   renderHistorico();
   renderBatalha();
+  renderNaval();
   renderCerco();
   renderAlvos();
   renderBalanco();
+  renderOrdersUploadHandlers();
 }
 
 /* ============================== TABS ============================== */
@@ -2383,6 +3649,9 @@ document.getElementById('tabnav').addEventListener('click', e=>{
   btn.classList.add('active');
   document.querySelectorAll('section.tab').forEach(s=>s.classList.remove('active'));
   document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  // O Mapa só sabe o espaço real que tem depois de ficar mesmo visível (display:block) —
+  // reajusta a seguir a esse momento, não no carregamento de dados (que pode acontecer com a aba escondida).
+  if(btn.dataset.tab==='mapa' && window.MapaView) requestAnimationFrame(()=>requestAnimationFrame(window.MapaView.refit));
 });
 
 /* ============================== UPLOAD ============================== */
